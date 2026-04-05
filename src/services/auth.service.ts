@@ -108,7 +108,7 @@ class AuthService {
       await newUser.save();
     }
 
-    return { message: "OTP sent", data: newUser };
+    return { success: true, message: "OTP sent", data: newUser };
   }
 }
 

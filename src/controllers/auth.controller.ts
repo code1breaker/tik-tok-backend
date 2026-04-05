@@ -1,11 +1,11 @@
-import type { NextFunction, Request, Response } from "express";
-import validator from "validator";
-import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
+import type { NextFunction, Request, Response } from "express";
+import jwt from "jsonwebtoken";
+import validator from "validator";
 
 // model
-import User from "../models/user.model.ts";
 import Otp from "../models/otp.model.ts";
+import User from "../models/user.model.ts";
 
 // utils
 import { BadRequest } from "../utils/apiError.ts";
@@ -34,11 +34,7 @@ export const signup = async (
       $or: [{ username }],
     });
 
-    if (
-      usernameExist &&
-      usernameExist.email !== email &&
-      usernameExist.phone !== phone
-    ) {
+    if (usernameExist?.isEmailVerified || usernameExist?.isPhoneVerified) {
       throw new BadRequest("Username already exists!!!");
     }
 
@@ -80,6 +76,9 @@ export const verifyEmail = async (req: Request, res: Response) => {
     throw new BadRequest("User not exist!!!");
   }
 
+  const usernameExist = await User.findOne({ username: userExist.username });
+  if (usernameExist) throw new BadRequest("Username already taken!!!");
+
   userExist.isEmailVerified = true;
   await userExist.save();
 
@@ -113,12 +112,17 @@ export const verifyPhone = async (req: Request, res: Response) => {
     throw new BadRequest("User does not exist");
   }
 
+  const usernameExist = await User.findOne({ username: userExist.username });
+  if (usernameExist) throw new BadRequest("Username already exist!!!");
+
   if (otpExist?.otp !== otp) throw new BadRequest("Invalid OTP");
 
   userExist.isPhoneVerified = true;
 
   await userExist.save();
   await Otp.findByIdAndDelete(otpExist?._id);
+
+  const { password, ...data } = userExist?.toObject();
 
   const accessToken = generateAccessToken(userExist);
   const refreshToken = generateRefreshToken(userExist);
@@ -139,5 +143,53 @@ export const verifyPhone = async (req: Request, res: Response) => {
 
   return res
     .status(201)
-    .json({ success: true, message: "User created successfully" });
+    .json({ success: true, message: "User created successfully", data });
+};
+
+export const login = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const { identifier, username, password } = req.body;
+    const email = validator.isEmail(identifier) ? String(identifier) : null;
+    const phone = validator.isMobilePhone(identifier) ? +identifier : null;
+
+    const userExist = await User.findOne({
+      $or: [{ username }, { email }, { phone }],
+    });
+    if (!userExist) throw new BadRequest("Invalid Credentials");
+
+    const isPasswordMatch = await bcrypt.compare(password, userExist.password);
+    if (!isPasswordMatch) throw new BadRequest("Invalid Credentials");
+
+    if (!userExist.isEmailVerified && !userExist.isPhoneVerified)
+      throw new BadRequest("Invalid Credentials");
+
+    const accessToken = generateAccessToken(userExist);
+    const refreshToken = generateRefreshToken(userExist);
+
+    res.cookie("accessToken", accessToken, {
+      httpOnly: true,
+      secure: env.NODE_ENV === "production",
+      sameSite: "none",
+      maxAge: 15 * 60 * 1000,
+    });
+
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      secure: env.NODE_ENV === "production",
+      sameSite: "none",
+      maxAge: 1 * 24 * 60 * 60 * 1000,
+    });
+
+    const { password: pass, ...data } = userExist?.toObject();
+
+    return res
+      .status(200)
+      .json({ success: true, message: "Login successfully", data });
+  } catch (error) {
+    next(error);
+  }
 };

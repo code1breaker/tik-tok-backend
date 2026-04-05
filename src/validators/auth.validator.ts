@@ -36,6 +36,16 @@ export const signupValidator = [
     .withMessage("password must be 5-20 characters"),
 ];
 
+export const loginValidator = [
+  body("identifier").trim().notEmpty().withMessage("required"),
+  body("password")
+    .trim()
+    .notEmpty()
+    .withMessage("required")
+    .isLength({ min: 5, max: 20 })
+    .withMessage("password must be 5-20 characters"),
+];
+
 export const verifyPhoneValidator = [
   body("phone")
     .trim()

@@ -2,13 +2,17 @@ import { Router } from "express";
 
 // controller
 import {
+  login,
   signup,
   verifyEmail,
   verifyPhone,
 } from "../controllers/auth.controller.ts";
 
 // validator
-import { signupValidator } from "../validators/auth.validator.ts";
+import {
+  loginValidator,
+  signupValidator,
+} from "../validators/auth.validator.ts";
 import { verifyPhoneValidator } from "../validators/auth.validator.ts";
 
 // middleware
@@ -18,6 +22,7 @@ import { authLimiter } from "../middlewares/rateLimit.middleware.ts";
 const router = Router();
 
 router.post("/signup", authLimiter, signupValidator, validate, signup);
+router.post("/login", authLimiter, loginValidator, validate, login);
 router.post("/login", authLimiter, validate, signup);
 router.get("/verify-email/:token", authLimiter, verifyEmail);
 router.post(
