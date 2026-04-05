@@ -1,14 +1,15 @@
 export interface SignupIf {
   username: string;
+  email: string | null;
+  phone: number | null;
+  password: string;
   firstname: string;
   lastname: string;
-  hashPassword: string;
 }
 
-export interface PhonneSignupIf extends SignupIf {
-  phone: number;
-}
-
-export interface EmailignupIf extends SignupIf {
-  email: string;
+export interface LoginIf {
+  username: string;
+  email: string | null;
+  phone: number | null;
+  password: string;
 }

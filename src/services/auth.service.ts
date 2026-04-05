@@ -1,3 +1,4 @@
+import bcrypt from "bcrypt";
 import ejs from "ejs";
 import jwt from "jsonwebtoken";
 import path from "path";
@@ -12,104 +13,174 @@ import { sendEmail } from "./email.service.ts";
 import { sendOtp } from "./otp.service.ts";
 
 // utils
-import { BadRequest } from "../utils/apiError.ts";
+import { BadRequest, NotFound } from "../utils/apiError.ts";
+import { generateAccessToken, generateRefreshToken } from "../utils/token.ts";
 
 // types
-import type {
-  EmailignupIf,
-  PhonneSignupIf,
-} from "../types/services/auth.types.ts";
+import type { LoginIf, SignupIf } from "../types/services/auth.types.ts";
 
 // config
 import { env } from "../config/env.ts";
 
-class AuthService {
-  async emailSignup({
+export const signup = async ({
+  firstname,
+  lastname,
+  email,
+  phone,
+  username,
+  password,
+}: SignupIf) => {
+  const usernameExist = await User.findOne({ username });
+  if (!usernameExist?.isEmailVerified && usernameExist?.isPhoneVerified)
+    throw new BadRequest("username already exist");
+
+  const query = {
+    ...(email && { email }),
+    ...(phone && { phone }),
+  };
+
+  const userExist = await User.findOne(query);
+  if (userExist?.isEmailVerified || userExist?.isPhoneVerified)
+    throw new BadRequest("user already exist");
+
+  if (userExist) {
+    await User.deleteOne({ _id: userExist?._id });
+  }
+
+  const salt = await bcrypt.genSalt(10);
+  const hashPassword = await bcrypt.hash(password, salt);
+
+  const user = await User.create({
+    firstname,
+    lastname,
+    username,
     email,
-    username,
-    firstname,
-    lastname,
-    hashPassword,
-  }: EmailignupIf) {
-    const userExist = await User.findOne({
-      $or: [{ email }],
-    });
-
-    if (userExist) {
-      if (userExist.isEmailVerified) {
-        throw new BadRequest("User already exists!!!");
-      }
-
-      await User.deleteOne({ _id: userExist._id });
-    }
-
-    const newUser = new User({
-      firstname,
-      lastname,
-      username,
-      email,
-      password: hashPassword,
-    });
-
-    const token = jwt.sign({ _id: newUser?._id }, env.VERIFY_EMAIL_SECRET);
-    const verifyLink = `${env.URL}/api/auth/verify-email/${token}`;
-
-    const __filename = fileURLToPath(import.meta.url);
-    const __dirname = path.dirname(__filename);
-    const filePath = path.join(__dirname, "../../src/views/verify-email.ejs");
-    const html = await ejs.renderFile(filePath, { verifyLink });
-
-    await sendEmail({
-      email,
-      subject: "Verify Email",
-      html,
-    });
-
-    await newUser.save();
-    return { success: true, message: "Email Sent!! Please verify it." };
-  }
-
-  async phoneSignup({
     phone,
-    username,
-    firstname,
-    lastname,
-    hashPassword,
-  }: PhonneSignupIf) {
-    const userExist = await User.findOne({
-      $or: [{ phone }],
-    });
+    password: hashPassword,
+  });
 
-    if (userExist) {
-      if (userExist.isPhoneVerified) {
-        throw new BadRequest("User already exists!!!");
-      }
+  if (user.email) sendEmailVerification(user);
+  if (user.phone) sendPhoneVerification(user);
 
-      await User.deleteOne({ _id: userExist._id });
-      await Otp.deleteOne({ phone });
-    }
+  return user;
+};
 
-    const { otp } = await sendOtp({ phone });
-    const newOtp = new Otp({
-      phone,
-      otp,
-    });
+export const sendEmailVerification = async (user: any) => {
+  const { _id, email } = user;
+  if (!email) return;
 
-    const newUser = new User({
-      firstname,
-      lastname,
-      username,
-      phone,
-      password: hashPassword,
-    });
+  const token = jwt.sign({ _id }, env.VERIFY_EMAIL_SECRET);
+  const verifyLink = `${env.URL}/api/auth/verify-email/${token}`;
 
-    if (otp) {
-      await newOtp.save();
-      await newUser.save();
-    }
+  const __filename = fileURLToPath(import.meta.url);
+  const __dirname = path.dirname(__filename);
+  const filePath = path.join(__dirname, "../../src/views/verify-email.ejs");
+  const html = await ejs.renderFile(filePath, { verifyLink });
 
-    return { success: true, message: "OTP sent", data: newUser };
+  await sendEmail({
+    email,
+    subject: "Verify Email",
+    html,
+  });
+};
+
+export const sendPhoneVerification = async (user: any) => {
+  const { phone } = user;
+
+  const otpExist = await Otp.findOne({ phone });
+  if (otpExist) return;
+
+  const { otp } = await sendOtp({ phone });
+  await Otp.create({
+    phone,
+    otp,
+  });
+};
+
+export const verifyEmail = async ({ token }: { token: string | undefined }) => {
+  if (!token) throw new BadRequest("token is missing");
+
+  const decodedToken = jwt.verify(token, env.VERIFY_EMAIL_SECRET);
+  if (!decodedToken || typeof decodedToken === "string") {
+    throw new BadRequest("invalid token");
   }
-}
 
-export default new AuthService();
+  const userExist = await User.findById(decodedToken._id);
+  if (!userExist) {
+    throw new NotFound("user not found");
+  }
+
+  const usernameExist = await User.findOne({ username: userExist.username });
+  if (usernameExist) throw new BadRequest("username already taken");
+
+  userExist.isEmailVerified = true;
+  await userExist.save();
+
+  const accessToken = generateAccessToken(userExist);
+  const refreshToken = generateRefreshToken(userExist);
+
+  return { user: userExist, accessToken, refreshToken };
+};
+
+export const verifyPhone = async ({
+  phone,
+  otp,
+}: {
+  phone: number;
+  otp: number;
+}) => {
+  const userExist = await User.findOne({ phone });
+  if (!userExist) {
+    throw new NotFound("user not found");
+  }
+
+  const otpExist = await Otp.findOne({ phone });
+  if (!otpExist) {
+    throw new BadRequest("otp does not exist");
+  }
+
+  const usernameExist = await User.findOne({ username: userExist.username });
+  if (usernameExist) throw new BadRequest("username already exist");
+
+  if (otpExist?.otp !== otp) throw new BadRequest("invalid OTP");
+
+  userExist.isPhoneVerified = true;
+
+  await userExist.save();
+  await Otp.findByIdAndDelete(otpExist?._id);
+
+  const accessToken = generateAccessToken(userExist);
+  const refreshToken = generateRefreshToken(userExist);
+
+  return { user: userExist, accessToken, refreshToken };
+};
+
+export const login = async ({ username, email, phone, password }: LoginIf) => {
+  const userExist = await User.findOne({
+    $or: [{ username }, { email }, { phone }],
+  });
+  if (!userExist) throw new BadRequest("invalid credentials");
+
+  const isPasswordMatch = await bcrypt.compare(password, userExist.password);
+  if (!isPasswordMatch) throw new BadRequest("invalid credentials");
+
+  if (!userExist.isEmailVerified && !userExist.isPhoneVerified)
+    throw new BadRequest("invalid credentials");
+
+  const accessToken = generateAccessToken(userExist);
+  const refreshToken = generateRefreshToken(userExist);
+
+  return { user: userExist, accessToken, refreshToken };
+};
+
+export const getProfile = async ({ userId }: { userId: string }) => {
+  const userExist = await User.findById(userId).select("-password");
+  if (!userExist) throw new NotFound("user not found");
+
+  return { user: userExist };
+};
+
+export const logout = async ({ userId }: { userId: string }) => {
+  const userExist = await User.findById(userId).select("-password");
+  if (!userExist) throw new NotFound("user not found");
+};
