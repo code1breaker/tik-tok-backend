@@ -1,12 +1,10 @@
 import { createLogger, format, transports } from "winston";
 import DailyRotateFile from "winston-daily-rotate-file";
+
+// config
 import { env } from "../config/env.ts";
 
-const { combine, timestamp, printf, errors, json, prettyPrint } = format;
-
-const myFormat = printf(({ level, timestamp, message }) => {
-  return `[${timestamp}] [${level}] [${message}]`;
-});
+const { combine, timestamp, errors, prettyPrint } = format;
 
 const dailyRotateFile = new DailyRotateFile({
   level: "info",
@@ -15,15 +13,15 @@ const dailyRotateFile = new DailyRotateFile({
   zippedArchive: true,
   maxSize: "20m",
   maxFiles: "14d",
-  format: combine(timestamp(), myFormat),
+  format: combine(timestamp(), errors({ stack: true }), prettyPrint()),
 });
 
 const console = new transports.Console({
-  level: "info",
+  level: env.LOG_LEVEL || "info",
 });
 
 const logger = createLogger({
-  level: "info",
+  level: env.LOG_LEVEL || "info",
   format: combine(timestamp(), errors({ stack: true }), prettyPrint()),
   transports: [console, dailyRotateFile],
 });

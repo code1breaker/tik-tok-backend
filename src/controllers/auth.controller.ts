@@ -62,88 +62,104 @@ export const signup = async (
   }
 };
 
-export const verifyEmail = async (req: Request, res: Response) => {
-  const { token } = req.params;
-  if (!token) throw new BadRequest("Token is missing");
+export const verifyEmail = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const { token } = req.params;
+    if (!token) throw new BadRequest("Token is missing");
 
-  const decodedToken = jwt.verify(token, env.VERIFY_EMAIL_SECRET);
-  if (!decodedToken || typeof decodedToken === "string") {
-    throw new BadRequest("Invalid Token");
+    const decodedToken = jwt.verify(token, env.VERIFY_EMAIL_SECRET);
+    if (!decodedToken || typeof decodedToken === "string") {
+      throw new BadRequest("Invalid Token");
+    }
+
+    const userExist = await User.findById(decodedToken._id);
+    if (!userExist) {
+      throw new BadRequest("User not exist!!!");
+    }
+
+    const usernameExist = await User.findOne({ username: userExist.username });
+    if (usernameExist) throw new BadRequest("Username already taken!!!");
+
+    userExist.isEmailVerified = true;
+    await userExist.save();
+
+    const accessToken = generateAccessToken(userExist);
+    const refreshToken = generateRefreshToken(userExist);
+
+    res.cookie("accessToken", accessToken, {
+      httpOnly: true,
+      secure: env.NODE_ENV === "production",
+      sameSite: "none",
+      maxAge: 15 * 60 * 1000,
+    });
+
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      secure: env.NODE_ENV === "production",
+      sameSite: "none",
+      maxAge: 1 * 24 * 60 * 60 * 1000,
+    });
+
+    return res.redirect(env.FRONTEND_URL);
+  } catch (error) {
+    next(error);
   }
-
-  const userExist = await User.findById(decodedToken._id);
-  if (!userExist) {
-    throw new BadRequest("User not exist!!!");
-  }
-
-  const usernameExist = await User.findOne({ username: userExist.username });
-  if (usernameExist) throw new BadRequest("Username already taken!!!");
-
-  userExist.isEmailVerified = true;
-  await userExist.save();
-
-  const accessToken = generateAccessToken(userExist);
-  const refreshToken = generateRefreshToken(userExist);
-
-  res.cookie("accessToken", accessToken, {
-    httpOnly: true,
-    secure: env.NODE_ENV === "production",
-    sameSite: "none",
-    maxAge: 15 * 60 * 1000,
-  });
-
-  res.cookie("refreshToken", refreshToken, {
-    httpOnly: true,
-    secure: env.NODE_ENV === "production",
-    sameSite: "none",
-    maxAge: 1 * 24 * 60 * 60 * 1000,
-  });
-
-  return res.redirect(env.FRONTEND_URL);
 };
 
-export const verifyPhone = async (req: Request, res: Response) => {
-  const { phone, otp } = req.body;
+export const verifyPhone = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const { phone, otp } = req.body;
 
-  const userExist = await User.findOne({ phone });
-  const otpExist = await Otp.findOne({ phone });
+    const userExist = await User.findOne({ phone });
+    const otpExist = await Otp.findOne({ phone });
 
-  if (!userExist) {
-    throw new BadRequest("User does not exist");
+    if (!userExist) {
+      throw new BadRequest("User does not exist");
+    }
+
+    const usernameExist = await User.findOne({ username: userExist.username });
+    if (usernameExist) throw new BadRequest("Username already exist!!!");
+
+    if (otpExist?.otp !== otp) throw new BadRequest("Invalid OTP");
+
+    userExist.isPhoneVerified = true;
+
+    await userExist.save();
+    await Otp.findByIdAndDelete(otpExist?._id);
+
+    const { password, ...data } = userExist?.toObject();
+
+    const accessToken = generateAccessToken(userExist);
+    const refreshToken = generateRefreshToken(userExist);
+
+    res.cookie("accessToken", accessToken, {
+      httpOnly: true,
+      secure: env.NODE_ENV === "production",
+      sameSite: "none",
+      maxAge: 15 * 60 * 1000,
+    });
+
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      secure: env.NODE_ENV === "production",
+      sameSite: "none",
+      maxAge: 1 * 24 * 60 * 60 * 1000,
+    });
+
+    return res
+      .status(201)
+      .json({ success: true, message: "User created successfully", data });
+  } catch (error) {
+    next(error);
   }
-
-  const usernameExist = await User.findOne({ username: userExist.username });
-  if (usernameExist) throw new BadRequest("Username already exist!!!");
-
-  if (otpExist?.otp !== otp) throw new BadRequest("Invalid OTP");
-
-  userExist.isPhoneVerified = true;
-
-  await userExist.save();
-  await Otp.findByIdAndDelete(otpExist?._id);
-
-  const { password, ...data } = userExist?.toObject();
-
-  const accessToken = generateAccessToken(userExist);
-  const refreshToken = generateRefreshToken(userExist);
-
-  res.cookie("accessToken", accessToken, {
-    httpOnly: true,
-    secure: env.NODE_ENV === "production",
-    sameSite: "none",
-    maxAge: 15 * 60 * 1000,
-  });
-
-  res.cookie("refreshToken", refreshToken, {
-    httpOnly: true,
-    secure: env.NODE_ENV === "production",
-    sameSite: "none",
-    maxAge: 1 * 24 * 60 * 60 * 1000,
-  });
-
-  return res
-    .status(201)
-    .json({ success: true, message: "User created successfully", data });
 };
 
 export const login = async (

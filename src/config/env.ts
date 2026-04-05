@@ -20,4 +20,6 @@ export const env = {
 
   FAST_2_SMS_API_URL: process.env.FAST_2_SMS_API_URL,
   FAST_2_SMS_API_KEY: process.env.FAST_2_SMS_API_KEY,
+
+  LOG_LEVEL: process.env.LOG_LEVEL,
 };
