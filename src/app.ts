@@ -1,6 +1,5 @@
-import express from "express";
-import dotenv from "dotenv";
 import cors from "cors";
+import express from "express";
 
 import { connectDB } from "./config/db.ts";
 
@@ -8,14 +7,18 @@ import { connectDB } from "./config/db.ts";
 import authRouter from "./routes/auth.route.ts";
 
 // middleware
-import errorMiddleware from "./middleware/error.middleware.ts";
+import errorMiddleware from "./middlewares/error.middleware.ts";
+import { publicLimiter } from "./middlewares/rateLimit.middleware.ts";
 
-dotenv.config();
+// config
+import { env } from "./config/env.ts";
+
 const app = express();
-const PORT = process.env.PORT || 3001;
+const PORT = env.PORT;
 
 app.use(cors());
 app.use(express.json());
+app.use("/api", publicLimiter);
 
 app.use("/api/auth", authRouter);
 app.use(errorMiddleware);

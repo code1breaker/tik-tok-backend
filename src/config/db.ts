@@ -1,8 +1,9 @@
 import mongoose from "mongoose";
+import { env } from "./env.ts";
 
 export const connectDB = async () => {
   try {
-    const uri = process.env.MONGO_URI || "";
+    const uri = env.MONGO_URI || "";
     await mongoose.connect(uri);
     console.log("MongoDB connected successfully");
   } catch (error) {

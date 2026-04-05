@@ -4,7 +4,6 @@ const userSchema = new Schema(
   {
     firstname: {
       type: String,
-      required: true,
     },
     lastname: {
       type: String,
@@ -47,7 +46,7 @@ const userSchema = new Schema(
       type: Date,
     },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 const User = model("User", userSchema);
