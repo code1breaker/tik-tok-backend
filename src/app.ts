@@ -1,5 +1,6 @@
 import cors from "cors";
 import express from "express";
+import cookieParser from "cookie-parser";
 
 import { connectDB } from "./config/db.ts";
 
@@ -18,6 +19,7 @@ const PORT = env.PORT;
 
 app.use(cors());
 app.use(express.json());
+app.use(cookieParser());
 app.use("/api", publicLimiter);
 
 app.use("/api/auth", authRouter);

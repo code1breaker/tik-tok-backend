@@ -3,9 +3,11 @@ import { Router } from "express";
 // controller
 import {
   login,
+  logout,
   signup,
   verifyEmail,
   verifyPhone,
+  getProfile,
 } from "../controllers/auth.controller.ts";
 
 // validator
@@ -17,13 +19,17 @@ import { verifyPhoneValidator } from "../validators/auth.validator.ts";
 
 // middleware
 import validate from "../middlewares/validate.middleware.ts";
-import { authLimiter } from "../middlewares/rateLimit.middleware.ts";
+import {
+  authLimiter,
+  publicLimiter,
+} from "../middlewares/rateLimit.middleware.ts";
+import { isAuth } from "../middlewares/auth.middleware.ts";
 
 const router = Router();
 
 router.post("/signup", authLimiter, signupValidator, validate, signup);
 router.post("/login", authLimiter, loginValidator, validate, login);
-router.post("/login", authLimiter, validate, signup);
+router.get("/logout", authLimiter, isAuth, logout);
 router.get("/verify-email/:token", authLimiter, verifyEmail);
 router.post(
   "/verify-phone",
@@ -32,5 +38,6 @@ router.post(
   validate,
   verifyPhone,
 );
+router.get("/profile", publicLimiter, isAuth, getProfile);
 
 export default router;

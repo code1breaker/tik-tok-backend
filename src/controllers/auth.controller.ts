@@ -209,3 +209,44 @@ export const login = async (
     next(error);
   }
 };
+
+export const getProfile = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const userId = (req as any).userId;
+    const userExist = await User.findById(userId).select("-password");
+
+    if (!userExist) throw new BadRequest("User not exist");
+
+    return res
+      .status(200)
+      .json({ success: true, message: "", data: userExist });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const logout = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const userId = (req as any).userId;
+    const userExist = await User.findById(userId).select("-password");
+
+    if (!userExist) throw new BadRequest("User not exist");
+
+    res.clearCookie("accessToken");
+    res.clearCookie("refreshToken");
+
+    return res
+      .status(200)
+      .json({ success: true, message: "Logout successfully", data: {} });
+  } catch (error) {
+    next(error);
+  }
+};
