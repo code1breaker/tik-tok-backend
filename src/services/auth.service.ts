@@ -184,3 +184,23 @@ export const logout = async ({ userId }: { userId: string }) => {
   const userExist = await User.findById(userId).select("-password");
   if (!userExist) throw new NotFound("user not found");
 };
+
+export const refreshToken = async ({
+  refreshToken,
+}: {
+  refreshToken: string;
+}) => {
+  if (!refreshToken) throw new BadRequest("refresh token is missing");
+
+  const decodedToken = jwt.verify(refreshToken, env.REFRESH_TOKEN_SECRET);
+  if (!decodedToken || typeof decodedToken === "string")
+    throw new BadRequest("invalid refresh token");
+
+  const userExist = await User.findById(decodedToken._id);
+  if (!userExist) throw new NotFound("user not exist");
+
+  const accessToken = generateAccessToken(userExist._id);
+  const newRefreshToken = generateRefreshToken(userExist._id);
+
+  return { accessToken, refreshToken: newRefreshToken };
+};

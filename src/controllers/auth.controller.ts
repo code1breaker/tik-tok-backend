@@ -173,3 +173,43 @@ export const logout = async (
     next(error);
   }
 };
+
+export const refreshToken = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const refreshToken = req.cookies.refreshToken;
+
+    const { accessToken, refreshToken: newRefreshToken } =
+      await AuthService.refreshToken({
+        refreshToken,
+      });
+
+    res.cookie("accessToken", accessToken, {
+      httpOnly: true,
+      secure: env.NODE_ENV === "production",
+      sameSite: "none",
+      maxAge: 15 * 60 * 1000,
+    });
+
+    res.cookie("refreshToken", newRefreshToken, {
+      httpOnly: true,
+      secure: env.NODE_ENV === "production",
+      sameSite: "none",
+      maxAge: 1 * 24 * 60 * 60 * 1000,
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "",
+      data: {
+        accessToken,
+        refreshToken,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};

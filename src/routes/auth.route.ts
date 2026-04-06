@@ -8,6 +8,7 @@ import {
   verifyEmail,
   verifyPhone,
   getProfile,
+  refreshToken,
 } from "../controllers/auth.controller.ts";
 
 // validator
@@ -39,5 +40,6 @@ router.post(
   verifyPhone,
 );
 router.get("/profile", publicLimiter, isAuth, getProfile);
+router.get("/refresh-token", publicLimiter, refreshToken);
 
 export default router;
