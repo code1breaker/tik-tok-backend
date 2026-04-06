@@ -55,3 +55,16 @@ export const verifyPhoneValidator = [
     .withMessage("invalid phone number"),
   body("otp").trim().notEmpty().withMessage("required").toInt(),
 ];
+
+export const resendVerificationValidator = [
+  body("identifier")
+    .trim()
+    .notEmpty()
+    .withMessage("required")
+    .custom((value) => {
+      if (validator.isEmail(value)) return true;
+      if (validator.isMobilePhone(value)) return true;
+
+      throw new Error("invalid identifier");
+    }),
+];

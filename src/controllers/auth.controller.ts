@@ -174,6 +174,28 @@ export const logout = async (
   }
 };
 
+export const resendVerification = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const { identifier } = req.body;
+    const email = validator.isEmail(identifier) ? String(identifier) : null;
+    const phone = validator.isMobilePhone(identifier) ? +identifier : null;
+
+    await AuthService.resendVerification({ email, phone });
+
+    return res.status(200).json({
+      success: true,
+      message: "",
+      data: {},
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const refreshToken = async (
   req: Request,
   res: Response,

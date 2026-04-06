@@ -69,7 +69,9 @@ export const sendEmailVerification = async (user: any) => {
   const { _id, email } = user;
   if (!email) return;
 
-  const token = jwt.sign({ _id }, env.VERIFY_EMAIL_SECRET);
+  const token = jwt.sign({ _id }, env.VERIFY_EMAIL_SECRET, {
+    expiresIn: 1 * 60 * 60 * 1000,
+  });
   const verifyLink = `${env.URL}/api/auth/verify-email/${token}`;
 
   const __filename = fileURLToPath(import.meta.url);
@@ -183,6 +185,30 @@ export const getProfile = async ({ userId }: { userId: string }) => {
 export const logout = async ({ userId }: { userId: string }) => {
   const userExist = await User.findById(userId).select("-password");
   if (!userExist) throw new NotFound("user not found");
+};
+
+export const resendVerification = async ({
+  email,
+  phone,
+}: {
+  email: string | null;
+  phone: number | null;
+}) => {
+  const query = {
+    ...(email && { email }),
+    ...(phone && { phone }),
+  };
+
+  const userExist = await User.findOne(query);
+  if (!userExist) throw new NotFound("user not exist");
+
+  if (!userExist.isEmailVerified && !userExist.isPhoneVerified)
+    throw new BadRequest("user already verified");
+
+  if (userExist.email) sendEmailVerification(userExist);
+  if (userExist.phone) sendPhoneVerification(userExist);
+
+  return { user: userExist };
 };
 
 export const refreshToken = async ({
