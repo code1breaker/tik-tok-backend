@@ -22,4 +22,9 @@ export const env = {
   FAST_2_SMS_API_KEY: process.env.FAST_2_SMS_API_KEY,
 
   LOG_LEVEL: process.env.LOG_LEVEL,
+
+  CLOUDINARY_BASE_URL: process.env.CLOUDINARY_BASE_URL as string,
+  CLOUDINARY_CLOUD_NAME: process.env.CLOUDINARY_CLOUD_NAME as string,
+  CLOUDINARY_API_KEY: process.env.CLOUDINARY_API_KEY as string,
+  CLOUDINARY_API_SECRET: process.env.CLOUDINARY_API_SECRET as string,
 };
