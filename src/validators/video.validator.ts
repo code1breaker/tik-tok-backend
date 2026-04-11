@@ -15,7 +15,7 @@ export const likeValidator = [
   param("videoId").isMongoId().withMessage("invalid video id"),
 ];
 
-export const commentValidator = [
+export const addCommentValidator = [
   param("videoId").isMongoId().withMessage("invalid video id"),
   body("message").trim().notEmpty().withMessage("required"),
   body("parentId").optional().isMongoId().withMessage("required"),
