@@ -3,15 +3,18 @@ import Comment from "../models/comment.model.ts";
 import Video from "../models/video.model.ts";
 
 // types
-import type { CommentIf } from "../types/services/comment.types.ts";
+import type {
+  AddCommentIf,
+  GetCommentIf,
+} from "../types/services/comment.types.ts";
 import { NotFound } from "../utils/apiError.ts";
 
-export const comment = async ({
+export const addComment = async ({
   videoId,
   userId,
   message,
   parentId,
-}: CommentIf) => {
+}: AddCommentIf) => {
   const video = await Video.findById(videoId);
   if (!video) throw new NotFound("video not found");
 
@@ -27,4 +30,47 @@ export const comment = async ({
   });
 
   return { comment };
+};
+
+export const getComments = async ({ videoId, limit, page }: GetCommentIf) => {
+  const video = await Video.findById(videoId);
+  if (!video) throw new NotFound("video not found");
+
+  const skip = (page - 1) * limit;
+
+  const comments = await Comment.find({
+    videoId,
+    parentId: null,
+  })
+    .populate("user", "username firstname lastname")
+    .sort({ createdAt: -1 })
+    .skip(skip)
+    .limit(limit)
+    .lean();
+
+  const parentIds = comments.map((comment) => comment._id);
+
+  const replies = await Comment.find({
+    parentId: { $in: parentIds },
+  })
+    .populate("user", "username firstname lastname")
+    .lean();
+
+  const allComments = comments.map((comment) => {
+    const id = comment?._id?.toString();
+    const obj: any = {};
+    obj[id] = { ...comment, replies: [] };
+
+    replies?.forEach((reply) => {
+      const parentId = reply.parentId!.toString();
+      if (obj[parentId]) {
+        obj[parentId].replies.push(reply);
+      }
+    });
+
+    const value = obj[id];
+    return value;
+  });
+
+  return { comments: allComments };
 };
