@@ -6,6 +6,11 @@ import { connectDB } from "./config/db.ts";
 
 // routes
 import authRouter from "./routes/auth.route.ts";
+import videoRouter from "./routes/video.route.ts";
+import uploadRouter from "./routes/upload.route.ts";
+import feedRouter from "./routes/feed.route.ts";
+import likeRouter from "./routes/like.route.ts";
+import commentRouter from "./routes/comment.route.ts";
 
 // middleware
 import errorMiddleware from "./middlewares/error.middleware.ts";
@@ -23,6 +28,11 @@ app.use(cookieParser());
 app.use("/api", publicLimiter);
 
 app.use("/api/auth", authRouter);
+app.use("/api/video", videoRouter);
+app.use("/api/upload", uploadRouter);
+app.use("/api/feed", feedRouter);
+app.use("/api/like", likeRouter);
+app.use("/api/comment", commentRouter);
 app.use(errorMiddleware);
 
 await connectDB();

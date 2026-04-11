@@ -113,7 +113,8 @@ export const verifyEmail = async ({ token }: { token: string | undefined }) => {
   }
 
   const usernameExist = await User.findOne({ username: userExist.username });
-  if (usernameExist) throw new BadRequest("username already taken");
+  if (usernameExist?.isEmailVerified)
+    throw new BadRequest("username already taken");
 
   userExist.isEmailVerified = true;
   await userExist.save();
@@ -142,7 +143,8 @@ export const verifyPhone = async ({
   }
 
   const usernameExist = await User.findOne({ username: userExist.username });
-  if (usernameExist) throw new BadRequest("username already exist");
+  if (usernameExist?.isPhoneVerified)
+    throw new BadRequest("username already exist");
 
   if (otpExist?.otp !== otp) throw new BadRequest("invalid OTP");
 
