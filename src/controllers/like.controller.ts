@@ -6,7 +6,7 @@ import { BadRequest } from "../utils/apiError.ts";
 export const like = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { videoId } = req.params;
-    const userId = (req as any).userId;
+    const userId = (req as any).user._id;
 
     if (!videoId) throw new BadRequest("video id is missing");
 

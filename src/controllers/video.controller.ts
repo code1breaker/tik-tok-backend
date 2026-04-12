@@ -9,7 +9,7 @@ export const upload = async (
 ) => {
   try {
     const body = req.body;
-    const userId = (req as any).userId;
+    const userId = (req as any).user._id;
     const video = await VideoService.upload({ ...body, userId });
 
     return res.status(201).json({

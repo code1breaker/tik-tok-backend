@@ -160,16 +160,20 @@ export const verifyPhone = async ({
 };
 
 export const login = async ({ username, email, phone, password }: LoginIf) => {
-  const userExist = await User.findOne({
-    $or: [{ username }, { email }, { phone }],
-  });
+  const query = {
+    ...(username && { username }),
+    ...(phone && { phone }),
+    ...(email && { username }),
+  };
+
+  const userExist = await User.findOne(query);
   if (!userExist) throw new BadRequest("invalid credentials");
 
   const isPasswordMatch = await bcrypt.compare(password, userExist.password);
   if (!isPasswordMatch) throw new BadRequest("invalid credentials");
 
   if (!userExist.isEmailVerified && !userExist.isPhoneVerified)
-    throw new BadRequest("invalid credentials");
+    throw new BadRequest("please verify your user");
 
   const accessToken = generateAccessToken(userExist);
   const refreshToken = generateRefreshToken(userExist);

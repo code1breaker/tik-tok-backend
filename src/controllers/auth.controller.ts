@@ -102,9 +102,10 @@ export const login = async (
   next: NextFunction,
 ) => {
   try {
-    const { identifier, username, password } = req.body;
+    const { identifier, password } = req.body;
     const email = validator.isEmail(identifier) ? String(identifier) : null;
     const phone = validator.isMobilePhone(identifier) ? +identifier : null;
+    const username = identifier;
 
     const { user, accessToken, refreshToken } = await AuthService.login({
       email,
@@ -143,7 +144,7 @@ export const getProfile = async (
   next: NextFunction,
 ) => {
   try {
-    const userId = (req as any).userId;
+    const userId = (req as any).user._id;
     const { user } = await AuthService.getProfile({ userId });
 
     const data = user.toObject();
@@ -160,7 +161,7 @@ export const logout = async (
   next: NextFunction,
 ) => {
   try {
-    const userId = (req as any).userId;
+    const userId = (req as any).user._id;
     await AuthService.getProfile({ userId });
 
     res.clearCookie("accessToken");

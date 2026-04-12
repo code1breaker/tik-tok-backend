@@ -6,6 +6,7 @@ import { connectDB } from "./config/db.ts";
 
 // routes
 import authRouter from "./routes/auth.route.ts";
+import followRouter from "./routes/follow.route.ts";
 import videoRouter from "./routes/video.route.ts";
 import uploadRouter from "./routes/upload.route.ts";
 import feedRouter from "./routes/feed.route.ts";
@@ -28,6 +29,7 @@ app.use(cookieParser());
 app.use("/api", publicLimiter);
 
 app.use("/api/auth", authRouter);
+app.use("/api/follow", followRouter);
 app.use("/api/video", videoRouter);
 app.use("/api/upload", uploadRouter);
 app.use("/api/feed", feedRouter);

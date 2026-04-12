@@ -10,7 +10,7 @@ export const addComment = async (
 ) => {
   try {
     const { videoId } = req.params;
-    const userId = (req as any).userId;
+    const userId = (req as any).user._id;
 
     if (!videoId) throw new BadRequest("video id is missing");
 
