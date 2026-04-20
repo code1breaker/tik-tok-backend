@@ -1,6 +1,7 @@
 import type { NextFunction, Request, Response } from "express";
 
 import * as VideoService from "../services/video.service.ts";
+import apiResponse from "../utils/api-response.ts";
 
 export const upload = async (
   req: Request,
@@ -9,12 +10,12 @@ export const upload = async (
 ) => {
   try {
     const body = req.body;
-    const userId = (req as any).userId;
+    const userId = (req as any).user._id;
     const video = await VideoService.upload({ ...body, userId });
 
-    return res.status(201).json({
-      success: true,
-      message: "video uploaded successfully",
+    apiResponse(res, {
+      status: 200,
+      message: "Video uploaded successfully",
       data: video,
     });
   } catch (error) {

@@ -1,7 +1,9 @@
 import type { NextFunction, Request, Response } from "express";
 
 import * as CommentService from "../services/comment.service.ts";
-import { BadRequest } from "../utils/apiError.ts";
+import { BadRequest } from "../utils/api-error.ts";
+import apiResponse from "../utils/api-response.ts";
+import ERROR_CODE from "../constants/error-code.ts";
 
 export const addComment = async (
   req: Request,
@@ -10,9 +12,13 @@ export const addComment = async (
 ) => {
   try {
     const { videoId } = req.params;
-    const userId = (req as any).userId;
-
-    if (!videoId) throw new BadRequest("video id is missing");
+    const userId = (req as any).user._id;
+    if (!videoId) {
+      throw new BadRequest({
+        message: "Video id is missing",
+        code: ERROR_CODE.VIDEO_ID_MISSING,
+      });
+    }
 
     const { message, parentId } = req.body;
 
@@ -23,9 +29,9 @@ export const addComment = async (
       parentId,
     });
 
-    return res.status(200).json({
-      success: true,
-      message: "comment successfully",
+    apiResponse(res, {
+      status: 200,
+      message: "Comment added successfully",
       data: comment,
     });
   } catch (error) {
@@ -43,7 +49,12 @@ export const getComments = async (
     const limit = Number(req.query.limit ?? 10);
     const page = Number(req.query.page ?? 1);
 
-    if (!videoId) throw new BadRequest("video id is missing");
+    if (!videoId) {
+      throw new BadRequest({
+        message: "Video id is missing",
+        code: ERROR_CODE.VIDEO_ID_MISSING,
+      });
+    }
 
     const { comments } = await CommentService.getComments({
       videoId,
@@ -51,9 +62,9 @@ export const getComments = async (
       page,
     });
 
-    return res.status(200).json({
-      success: true,
-      message: "comment successfully",
+    apiResponse(res, {
+      status: 200,
+      message: "Comment fetched successfully",
       data: comments,
     });
   } catch (error) {

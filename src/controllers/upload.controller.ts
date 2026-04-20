@@ -1,6 +1,7 @@
 import type { NextFunction, Request, Response } from "express";
 import cloudinary from "../config/cloudinary.ts";
 import { env } from "../config/env.ts";
+import apiResponse from "../utils/api-response.ts";
 
 export const uploadSignature = (
   req: Request,
@@ -28,8 +29,8 @@ export const uploadSignature = (
       apiKey: env.CLOUDINARY_API_KEY,
     };
 
-    return res.status(200).json({
-      success: true,
+    apiResponse(res, {
+      status: 200,
       message: "Signed signature",
       data,
     });
