@@ -5,7 +5,7 @@ import validator from "validator";
 import * as AuthService from "../services/auth.service.ts";
 
 // config
-import { env } from "../config/env.ts";
+import apiResponse from "../utils/api-response.ts";
 
 export const signup = async (
   req: Request,
@@ -20,9 +20,11 @@ export const signup = async (
     const user = await AuthService.signup({ ...req.body, email, phone });
     const { password, ...data } = user.toObject();
 
-    return res
-      .status(200)
-      .json({ success: true, message: "user created successfully", data });
+    apiResponse(res, {
+      status: 200,
+      message: "Please verify your account",
+      data,
+    });
   } catch (error) {
     next(error);
   }
@@ -35,25 +37,31 @@ export const verifyEmail = async (
 ) => {
   try {
     const { token } = req.params;
-    const { accessToken, refreshToken } = await AuthService.verifyEmail({
+    const { user, accessToken, refreshToken } = await AuthService.verifyEmail({
       token,
     });
 
+    const data = user.toObject();
+
     res.cookie("accessToken", accessToken, {
       httpOnly: true,
-      secure: env.NODE_ENV === "production",
+      secure: true,
       sameSite: "none",
       maxAge: 15 * 60 * 1000,
     });
 
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
-      secure: env.NODE_ENV === "production",
+      secure: true,
       sameSite: "none",
       maxAge: 1 * 24 * 60 * 60 * 1000,
     });
 
-    return res.redirect(env.FRONTEND_URL);
+    apiResponse(res, {
+      status: 200,
+      message: "Email verified successfully",
+      data,
+    });
   } catch (error) {
     next(error);
   }
@@ -72,25 +80,27 @@ export const verifyPhone = async (
       otp,
     });
 
-    const { password, ...data } = user.toObject();
+    const data = user.toObject();
 
     res.cookie("accessToken", accessToken, {
       httpOnly: true,
-      secure: env.NODE_ENV === "production",
+      secure: true,
       sameSite: "none",
       maxAge: 15 * 60 * 1000,
     });
 
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
-      secure: env.NODE_ENV === "production",
+      secure: true,
       sameSite: "none",
       maxAge: 1 * 24 * 60 * 60 * 1000,
     });
 
-    return res
-      .status(201)
-      .json({ success: true, message: "User created successfully", data });
+    apiResponse(res, {
+      status: 200,
+      message: "Phone verified successfully",
+      data,
+    });
   } catch (error) {
     next(error);
   }
@@ -105,7 +115,7 @@ export const login = async (
     const { identifier, password } = req.body;
     const email = validator.isEmail(identifier) ? String(identifier) : null;
     const phone = validator.isMobilePhone(identifier) ? +identifier : null;
-    const username = identifier;
+    const username = !email && !phone && identifier;
 
     const { user, accessToken, refreshToken } = await AuthService.login({
       email,
@@ -116,23 +126,25 @@ export const login = async (
 
     res.cookie("accessToken", accessToken, {
       httpOnly: true,
-      secure: env.NODE_ENV === "production",
+      secure: true,
       sameSite: "none",
       maxAge: 15 * 60 * 1000,
     });
 
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
-      secure: env.NODE_ENV === "production",
+      secure: true,
       sameSite: "none",
       maxAge: 1 * 24 * 60 * 60 * 1000,
     });
 
     const { password: pass, ...data } = user?.toObject();
 
-    return res
-      .status(200)
-      .json({ success: true, message: "Login successfully", data });
+    apiResponse(res, {
+      status: 200,
+      message: "Login successfully",
+      data,
+    });
   } catch (error) {
     next(error);
   }
@@ -167,9 +179,10 @@ export const logout = async (
     res.clearCookie("accessToken");
     res.clearCookie("refreshToken");
 
-    return res
-      .status(200)
-      .json({ success: true, message: "Logout successfully", data: {} });
+    apiResponse(res, {
+      status: 200,
+      message: "Logout successfully",
+    });
   } catch (error) {
     next(error);
   }
@@ -187,10 +200,9 @@ export const resendVerification = async (
 
     await AuthService.resendVerification({ email, phone });
 
-    return res.status(200).json({
-      success: true,
-      message: "",
-      data: {},
+    apiResponse(res, {
+      status: 200,
+      message: `Verification sent on ${identifier}`,
     });
   } catch (error) {
     next(error);
@@ -212,21 +224,21 @@ export const refreshToken = async (
 
     res.cookie("accessToken", accessToken, {
       httpOnly: true,
-      secure: env.NODE_ENV === "production",
+      secure: true,
       sameSite: "none",
       maxAge: 15 * 60 * 1000,
     });
 
     res.cookie("refreshToken", newRefreshToken, {
       httpOnly: true,
-      secure: env.NODE_ENV === "production",
+      secure: true,
       sameSite: "none",
       maxAge: 1 * 24 * 60 * 60 * 1000,
     });
 
-    return res.status(200).json({
-      success: true,
-      message: "",
+    apiResponse(res, {
+      status: 200,
+      message: "Token resfreshed successfully",
       data: {
         accessToken,
         refreshToken,

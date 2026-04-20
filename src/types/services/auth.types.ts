@@ -3,8 +3,7 @@ export interface SignupIf {
   email: string | null;
   phone: number | null;
   password: string;
-  firstname: string;
-  lastname: string;
+  fullname: string;
 }
 
 export interface LoginIf {

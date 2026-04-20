@@ -1,4 +1,5 @@
 // models
+import ERROR_CODE from "../constants/error-code.ts";
 import Follow from "../models/follow.model.ts";
 
 // types
@@ -12,7 +13,7 @@ import type {
 } from "../types/services/follow.types.ts";
 
 // utils
-import { BadRequest } from "../utils/apiError.ts";
+import { BadRequest } from "../utils/api-error.ts";
 
 export const followUser = async ({ followingId, followerId }: FollowUserIf) => {
   const existingFollow = await Follow.findOne({
@@ -20,7 +21,11 @@ export const followUser = async ({ followingId, followerId }: FollowUserIf) => {
     followerId,
   });
 
-  if (existingFollow) throw new BadRequest("user allready follow this account");
+  if (existingFollow)
+    throw new BadRequest({
+      message: "User allready follow this account",
+      code: ERROR_CODE.ALREADY_FOLLOWING,
+    });
 
   await Follow.create({
     followerId,
@@ -36,9 +41,12 @@ export const unFollowUser = async ({
     followingId,
     followerId,
   });
-
-  if (!existingFollow) throw new BadRequest("user don't follow this account");
-
+  if (!existingFollow) {
+    throw new BadRequest({
+      message: "user doesn't follow this account",
+      code: ERROR_CODE.NOT_FOLLOWING,
+    });
+  }
   await Follow.deleteOne({
     followerId,
     followingId,
@@ -61,7 +69,12 @@ export const updateFollowStatus = async ({
     },
   );
 
-  if (!existingFollow) throw new BadRequest("user don't follow this account");
+  if (!existingFollow) {
+    throw new BadRequest({
+      message: "User doesn't follow this account",
+      code: ERROR_CODE.NOT_FOLLOWING,
+    });
+  }
 };
 
 export const incomingFollowRequest = async ({
@@ -77,7 +90,7 @@ export const incomingFollowRequest = async ({
   })
     .skip(skip)
     .limit(limit)
-    .populate("followerId", "username firstname lastname");
+    .populate("followerId", "username fullname");
 
   const count = await Follow.countDocuments({
     followingId: userId,
@@ -99,7 +112,7 @@ export const outgoingFollowRequest = async ({
   })
     .skip(skip)
     .limit(limit)
-    .populate("followingId", "username firstname lastname");
+    .populate("followingId", "username fullname");
 
   const count = await Follow.countDocuments({
     followerId: userId,
@@ -118,7 +131,7 @@ export const getFollower = async ({ userId, limit, page }: GetFollowerIf) => {
   })
     .skip(skip)
     .limit(limit)
-    .populate("followerId", "username firstname lastname");
+    .populate("followerId", "username fullname");
 
   const count = await Follow.countDocuments({
     followingId: userId,
@@ -137,7 +150,7 @@ export const getFollowing = async ({ userId, limit, page }: GetFollowingIf) => {
   })
     .skip(skip)
     .limit(limit)
-    .populate("followingId", "username firs tname lastname");
+    .populate("followingId", "username fullname");
 
   const count = await Follow.countDocuments({
     followerId: userId,

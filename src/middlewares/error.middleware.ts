@@ -1,5 +1,5 @@
 import type { NextFunction, Request, Response } from "express";
-import { ApiError } from "../utils/apiError.ts";
+import { ApiError } from "../utils/api-error.ts";
 import logger from "../utils/logger.ts";
 
 const errorMiddleware = (
@@ -14,15 +14,16 @@ const errorMiddleware = (
   };
 
   if (err instanceof ApiError) {
-    const { status, message, error, stack } = err;
+    const { status, message, error, code, stack } = err;
     logger.error("ApiError:", {
       status,
       message,
       error,
+      code,
       stack,
       ...errObj,
     });
-    return res.status(status).json({ success: false, message, error });
+    return res.status(status).json({ success: false, message, code, error });
   }
 
   logger.error("Internal Server error", {

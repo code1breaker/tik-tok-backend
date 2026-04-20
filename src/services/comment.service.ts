@@ -1,4 +1,5 @@
 // models
+import ERROR_CODE from "../constants/error-code.ts";
 import Comment from "../models/comment.model.ts";
 import Video from "../models/video.model.ts";
 
@@ -7,7 +8,7 @@ import type {
   AddCommentIf,
   GetCommentIf,
 } from "../types/services/comment.types.ts";
-import { NotFound } from "../utils/apiError.ts";
+import { NotFound } from "../utils/api-error.ts";
 
 export const addComment = async ({
   videoId,
@@ -16,7 +17,11 @@ export const addComment = async ({
   parentId,
 }: AddCommentIf) => {
   const video = await Video.findById(videoId);
-  if (!video) throw new NotFound("video not found");
+  if (!video)
+    throw new NotFound({
+      message: "Video not found",
+      code: ERROR_CODE.VIDEO_NOT_FOUND,
+    });
 
   const comment = await Comment.create({
     userId,
@@ -34,7 +39,11 @@ export const addComment = async ({
 
 export const getComments = async ({ videoId, limit, page }: GetCommentIf) => {
   const video = await Video.findById(videoId);
-  if (!video) throw new NotFound("video not found");
+  if (!video)
+    throw new NotFound({
+      message: "Video not found",
+      code: ERROR_CODE.VIDEO_NOT_FOUND,
+    });
 
   const skip = (page - 1) * limit;
 
@@ -42,7 +51,7 @@ export const getComments = async ({ videoId, limit, page }: GetCommentIf) => {
     videoId,
     parentId: null,
   })
-    .populate("user", "username firstname lastname")
+    .populate("user", "username fullname")
     .sort({ createdAt: -1 })
     .skip(skip)
     .limit(limit)
@@ -53,7 +62,7 @@ export const getComments = async ({ videoId, limit, page }: GetCommentIf) => {
   const replies = await Comment.find({
     parentId: { $in: parentIds },
   })
-    .populate("user", "username firstname lastname")
+    .populate("user", "username fullname")
     .lean();
 
   const allComments = comments.map((comment) => {

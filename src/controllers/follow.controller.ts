@@ -2,7 +2,9 @@ import type { NextFunction, Request, Response } from "express";
 
 // service
 import * as FollowService from "../services/follow.service.ts";
-import { BadRequest } from "../utils/apiError.ts";
+import { BadRequest } from "../utils/api-error.ts";
+import apiResponse from "../utils/api-response.ts";
+import ERROR_CODE from "../constants/error-code.ts";
 
 export const followUser = async (
   req: Request,
@@ -13,15 +15,24 @@ export const followUser = async (
     const followingId = req.params.userId;
     const followerId = (req as any).user._id;
 
-    if (!followingId) throw new BadRequest("following id is missing");
-    if (followerId === followingId)
-      throw new BadRequest("user cannot follow self");
+    if (!followingId) {
+      throw new BadRequest({
+        message: "Following id is missing",
+        code: ERROR_CODE.FOLLOWING_ID_MISSING,
+      });
+    }
 
+    if (followerId === followingId) {
+      throw new BadRequest({
+        message: "User cannot follow self",
+        code: ERROR_CODE.CANNOT_FOLLOW_SELF,
+      });
+    }
     await FollowService.followUser({ followingId, followerId });
 
-    return res.status(200).json({
-      success: true,
-      message: "user follow successfully",
+    apiResponse(res, {
+      status: 200,
+      message: "User follow successfully",
     });
   } catch (error) {
     next(error);
@@ -37,15 +48,25 @@ export const unFollowUser = async (
     const followingId = req.params.userId;
     const followerId = (req as any).user._id;
 
-    if (!followingId) throw new BadRequest("following id is missing");
-    if (followerId === followingId)
-      throw new BadRequest("user cannot unfollow self");
+    if (!followingId) {
+      throw new BadRequest({
+        message: "Following id is missing",
+        code: ERROR_CODE.FOLLOWING_ID_MISSING,
+      });
+    }
+
+    if (followerId === followingId) {
+      throw new BadRequest({
+        message: "User cannot unfollow self",
+        code: ERROR_CODE.CANNOT_UNFOLLOW_SELF,
+      });
+    }
 
     await FollowService.unFollowUser({ followingId, followerId });
 
-    return res.status(200).json({
-      success: true,
-      message: "user unfollow successfully",
+    apiResponse(res, {
+      status: 200,
+      message: "User unfollow successfully",
     });
   } catch (error) {
     next(error);
@@ -61,16 +82,25 @@ export const updateFollowStatus = async (
     const followingId = req.params.userId;
     const followerId = (req as any).user._id;
     const { status } = req.body;
+    if (!followingId) {
+      throw new BadRequest({
+        message: "Following id is missing",
+        code: ERROR_CODE.FOLLOWING_ID_MISSING,
+      });
+    }
 
-    if (!followingId) throw new BadRequest("following id is missing");
-    if (followerId === followingId)
-      throw new BadRequest("user cannot unfollow self");
+    if (followerId === followingId) {
+      throw new BadRequest({
+        message: "User cannot unfollow self",
+        code: ERROR_CODE.CANNOT_UNFOLLOW_SELF,
+      });
+    }
 
     await FollowService.updateFollowStatus({ followingId, followerId, status });
 
-    return res.status(200).json({
-      success: true,
-      message: "update follow status successfully",
+    apiResponse(res, {
+      status: 200,
+      message: "Update follow status successfully",
     });
   } catch (error) {
     next(error);
@@ -93,9 +123,9 @@ export const incomingFollowRequest = async (
       page,
     });
 
-    return res.status(200).json({
-      success: true,
-      message: "fetch incoming follow request successfully",
+    apiResponse(res, {
+      status: 200,
+      message: "Fetch incoming follow request successfully",
       data: user,
       pagination: {
         limit,
@@ -123,9 +153,10 @@ export const outgoingFollowRequest = async (
       limit,
       page,
     });
-    return res.status(200).json({
-      success: true,
-      message: "fetch outgoing follow request successfully",
+
+    apiResponse(res, {
+      status: 200,
+      message: "Fetch outgoing follow request successfully",
       data: user,
       pagination: {
         limit,
@@ -154,9 +185,9 @@ export const getFollower = async (
       page,
     });
 
-    return res.status(200).json({
-      success: true,
-      message: "fetch follower successfully",
+    apiResponse(res, {
+      status: 200,
+      message: "Fetch follower successfully",
       data: user,
       pagination: {
         limit,
@@ -184,9 +215,9 @@ export const getFollowing = async (
       limit,
       page,
     });
-    return res.status(200).json({
-      success: true,
-      message: "fetch following successfully",
+    apiResponse(res, {
+      status: 200,
+      message: "Fetch following successfully",
       data: user,
       pagination: {
         limit,

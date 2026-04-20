@@ -12,16 +12,11 @@ export const signupValidator = [
 
       throw new Error("invalid identifier");
     }),
-  body("firstname")
+  body("fullname")
     .trim()
     .optional({ checkFalsy: true })
     .isLength({ min: 2, max: 20 })
-    .withMessage("firstname must be 2-20 characters"),
-  body("lastname")
-    .trim()
-    .optional({ checkFalsy: true })
-    .isLength({ min: 2, max: 20 })
-    .withMessage("lastname must be 2-20 characters"),
+    .withMessage("fullname must be 2-20 characters"), 
   body("username")
     .trim()
     .notEmpty()

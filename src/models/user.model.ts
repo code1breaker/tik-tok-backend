@@ -2,10 +2,7 @@ import { model, Schema } from "mongoose";
 
 const userSchema = new Schema(
   {
-    firstname: {
-      type: String,
-    },
-    lastname: {
+    fullname: {
       type: String,
     },
     username: {
@@ -15,13 +12,9 @@ const userSchema = new Schema(
     },
     phone: {
       type: Number,
-      unique: true,
-      sparse: true,
     },
     email: {
       type: String,
-      unique: true,
-      sparse: true,
     },
     password: {
       type: String,
@@ -45,8 +38,24 @@ const userSchema = new Schema(
     dob: {
       type: Date,
     },
+    expireAt: {
+      type: Date,
+    },
   },
   { timestamps: true },
+);
+
+userSchema.index(
+  { email: 1 },
+  { unique: true, partialFilterExpression: { email: { $type: "string" } } },
+);
+
+userSchema.index(
+  { phone: 1 },
+  {
+    unique: true,
+    partialFilterExpression: { phone: { $type: "number" } },
+  },
 );
 
 const User = model("User", userSchema);

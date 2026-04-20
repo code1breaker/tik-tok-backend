@@ -9,7 +9,7 @@ export const feed = async ({ limit, page }: FeedIf) => {
 
   const count = await Video.countDocuments();
   const feed = await Video.find()
-    .populate("user", "username firstname lastname")
+    .populate("user", "username fullname")
     .sort({ createdAt: -1 })
     .skip(skip)
     .limit(limit);

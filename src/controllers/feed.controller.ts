@@ -1,6 +1,7 @@
 import type { NextFunction, Request, Response } from "express";
 
 import * as FeedService from "../services/feed.service.ts";
+import apiResponse from "../utils/api-response.ts";
 
 export const feed = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -9,9 +10,9 @@ export const feed = async (req: Request, res: Response, next: NextFunction) => {
 
     const { feed, count } = await FeedService.feed({ limit, page });
 
-    return res.status(200).json({
-      success: true,
-      message: "video fetch successfully",
+    apiResponse(res, {
+      status: 200,
+      message: "Video fetch successfully",
       data: feed,
       pagination: {
         count,

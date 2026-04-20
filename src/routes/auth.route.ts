@@ -42,9 +42,8 @@ router.post(
   verifyPhone,
 );
 router.get("/profile", publicLimiter, isAuth, getProfile);
-router.get(
+router.post(
   "/resend-verification",
-  isAuth,
   resendVerificationValidator,
   resendVerification,
 );
