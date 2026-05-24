@@ -3,15 +3,15 @@ import cloudinary from "../config/cloudinary.ts";
 import { env } from "../config/env.ts";
 import apiResponse from "../utils/api-response.ts";
 
-export const uploadSignature = (
+export const uploadSignature = async (
   req: Request,
   res: Response,
   next: NextFunction,
 ) => {
   try {
-    const { filetype = "auto" } = req.query;
+    const { filetype = "auto", foldername = "video" } = req.query;
     const timestamp = Math.floor(Date.now() / 1000);
-    const folder = `tiktok/${filetype}`;
+    const folder = `tiktok/${foldername}`;
     const signature = cloudinary.utils.api_sign_request(
       {
         folder,
@@ -33,6 +33,26 @@ export const uploadSignature = (
       status: 200,
       message: "Signed signature",
       data,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const deleteMedia = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const { publicId, resourceType = "image" } = req.body;
+    const resp = await cloudinary.uploader.destroy(publicId, {
+      resource_type: resourceType,
+    });
+
+    apiResponse(res, {
+      status: 200,
+      message: "Video deleted successfully ",
     });
   } catch (error) {
     next(error);

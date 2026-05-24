@@ -79,20 +79,20 @@ export const updateFollowStatus = async (
   next: NextFunction,
 ) => {
   try {
-    const followingId = req.params.userId;
-    const followerId = (req as any).user._id;
+    const followerId = req.params.userId;
+    const followingId = (req as any).user._id;
     const { status } = req.body;
-    if (!followingId) {
+    if (!followerId) {
       throw new BadRequest({
-        message: "Following id is missing",
-        code: ERROR_CODE.FOLLOWING_ID_MISSING,
+        message: "followerId id is missing",
+        code: ERROR_CODE.FOLLOWER_ID_MISSING,
       });
     }
 
     if (followerId === followingId) {
       throw new BadRequest({
-        message: "User cannot unfollow self",
-        code: ERROR_CODE.CANNOT_UNFOLLOW_SELF,
+        message: "User cannot update status",
+        code: ERROR_CODE.INVALID_FOLLOW_REQUEST_STATE,
       });
     }
 

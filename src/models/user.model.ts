@@ -31,6 +31,9 @@ const userSchema = new Schema(
     photoUrl: {
       type: String,
     },
+    bio: {
+      type: String,
+    },
     gender: {
       type: String,
       enum: ["male", "female", "other"],

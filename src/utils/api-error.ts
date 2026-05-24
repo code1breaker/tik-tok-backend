@@ -20,8 +20,13 @@ class ApiError extends Error {
 }
 
 class BadRequest extends ApiError {
-  constructor({ message = "Bad Request", code, error }: ApiErrorOptionsIf) {
-    super(message, 400, code, error);
+  constructor({
+    message = "Bad Request",
+    code,
+    error,
+    status = 400,
+  }: ApiErrorOptionsIf) {
+    super(message, status, code, error);
   }
 }
 

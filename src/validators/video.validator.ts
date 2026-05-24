@@ -3,13 +3,31 @@ import { visibility } from "../types/common/constant.ts";
 
 export const uploadValidator = [
   body("url").trim().notEmpty().withMessage("required"),
-  body("thumbnail").trim(),
-  body("caption").trim(),
-  body("hashtags").isArray(),
-  body("visibility").isIn(visibility).withMessage("invalid visibility"),
+  body("filename").trim().optional(),
+  body("duration").optional().toFloat(),
+  body("thumbnail").trim().optional(),
+  body("caption").trim().optional(),
+  body("hashtags").optional().isArray(),
+  body("visibility")
+    .optional()
+    .isIn(visibility)
+    .withMessage("invalid visibility"),
 ];
 
-export const feedValidator = [query("limit"), query("page")];
+export const updateUploadValidator = [
+  param("videoId").isMongoId().withMessage("invalid video id"),
+  body("url").trim().notEmpty().optional(),
+  body("filename").trim().optional(),
+  body("duration").optional().toFloat(),
+  body("thumbnail").trim().optional(),
+  body("caption").trim().optional(),
+  body("status").trim().optional(),
+  body("hashtags").optional().isArray(),
+  body("visibility")
+    .optional()
+    .isIn(visibility)
+    .withMessage("invalid visibility"),
+];
 
 export const likeValidator = [
   param("videoId").isMongoId().withMessage("invalid video id"),

@@ -8,3 +8,8 @@ export interface UploadIf {
   visibility: string;
   userId: string;
 }
+
+export interface UpdateUploadIf extends UploadIf {
+  videoId: string;
+  status: string;
+}

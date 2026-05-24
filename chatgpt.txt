@@ -1,0 +1,788 @@
+prompt:
+i am building tiktok scalable backend with express and mongodb.
+Need list of all apis and also good naming structure with best practice in order to scale. Give me api list and dont explain 
+
+Base Conventions
+Base URL: /api/v1
+Resource naming: plural nouns
+Use kebab-case for multi-word resources
+Use nested routes only when ownership matters
+Use cursor pagination everywhere
+Idempotent methods:
+GET → read
+POST → create/action
+PUT → replace
+PATCH → partial update
+DELETE → remove
+Response envelope:
+{
+  "success": true,
+  "data": {},
+  "meta": {},
+  "error": null
+}
+Suggested Folder Structure
+src/
+├── api/
+│   ├── v1/
+│   │   ├── auth/
+│   │   ├── users/
+│   │   ├── videos/
+│   │   ├── comments/
+│   │   ├── likes/
+│   │   ├── follows/
+│   │   ├── feeds/
+│   │   ├── messages/
+│   │   ├── notifications/
+│   │   ├── uploads/
+│   │   ├── moderation/
+│   │   ├── analytics/
+│   │   └── admin/
+├── configs/
+├── db/
+├── middlewares/
+├── services/
+├── repositories/
+├── queues/
+├── workers/
+├── events/
+├── sockets/
+├── utils/
+└── shared/
+
+Auth APIs
+Auth
+POST  /auth/register
+POST  /auth/login
+POST  /auth/logout
+POST  /auth/refresh-token
+POST  /auth/verify-email
+POST  /auth/resend-verification
+POST  /auth/forgot-password
+POST  /auth/reset-password
+POST  /auth/change-password
+POST  /auth/device-token
+GET   /auth/me
+DELETE /auth/sessions/:sessionId
+GET    /auth/sessions
+
+User APIs
+Users
+GET    /users/:userId
+PATCH  /users/:userId
+DELETE /users/:userId
+
+GET    /users/:userId/profile
+PATCH  /users/:userId/profile
+
+GET    /users/:userId/stats
+GET    /users/:userId/videos
+GET    /users/:userId/liked-videos
+GET    /users/:userId/reposts
+GET    /users/:userId/bookmarks
+
+GET    /users/search
+GET    /users/suggestions
+
+POST   /users/:userId/block
+DELETE /users/:userId/block
+
+POST   /users/:userId/mute
+DELETE /users/:userId/mute
+
+POST   /users/:userId/report
+Follow System APIs
+Follows
+POST   /users/:userId/follow
+DELETE /users/:userId/follow
+
+GET    /users/:userId/followers
+GET    /users/:userId/following
+
+GET    /users/:userId/mutual-followers
+Video APIs
+Videos
+POST   /videos
+GET    /videos/:videoId
+PATCH  /videos/:videoId
+DELETE /videos/:videoId
+
+GET    /videos/:videoId/stats
+
+POST   /videos/:videoId/publish
+POST   /videos/:videoId/archive
+
+POST   /videos/:videoId/view
+POST   /videos/:videoId/share
+
+GET    /videos/trending
+GET    /videos/discover
+GET    /videos/search
+GET    /videos/hashtags/:hashtag
+
+POST   /videos/:videoId/report
+Upload APIs
+Uploads
+POST   /uploads/video/initiate
+POST   /uploads/video/chunk
+POST   /uploads/video/complete
+
+POST   /uploads/image
+POST   /uploads/audio
+
+GET    /uploads/:uploadId/status
+DELETE /uploads/:uploadId
+Feed APIs
+Feeds
+GET    /feeds/for-you
+GET    /feeds/following
+GET    /feeds/trending
+GET    /feeds/live
+Like APIs
+Likes
+POST   /videos/:videoId/like
+DELETE /videos/:videoId/like
+
+GET    /videos/:videoId/likes
+Bookmark APIs
+Bookmarks
+POST   /videos/:videoId/bookmark
+DELETE /videos/:videoId/bookmark
+
+GET    /users/:userId/bookmarks
+Comment APIs
+Comments
+POST   /videos/:videoId/comments
+GET    /videos/:videoId/comments
+
+PATCH  /comments/:commentId
+DELETE /comments/:commentId
+
+POST   /comments/:commentId/like
+DELETE /comments/:commentId/like
+
+POST   /comments/:commentId/reply
+GET    /comments/:commentId/replies
+
+POST   /comments/:commentId/pin
+DELETE /comments/:commentId/pin
+
+POST   /comments/:commentId/report
+Hashtag APIs
+Hashtags
+GET    /hashtags/:tag
+GET    /hashtags/:tag/videos
+GET    /hashtags/trending
+Notification APIs
+Notifications
+GET    /notifications
+PATCH  /notifications/read-all
+PATCH  /notifications/:notificationId/read
+
+DELETE /notifications/:notificationId
+Messaging APIs
+Conversations
+POST   /conversations
+GET    /conversations
+GET    /conversations/:conversationId
+
+POST   /conversations/:conversationId/messages
+GET    /conversations/:conversationId/messages
+
+PATCH  /messages/:messageId
+DELETE /messages/:messageId
+
+POST   /messages/:messageId/read
+POST   /messages/:messageId/react
+Live Streaming APIs
+Live
+POST   /live/start
+POST   /live/:liveId/end
+
+GET    /live/:liveId
+GET    /live/:liveId/viewers
+
+POST   /live/:liveId/join
+POST   /live/:liveId/leave
+
+POST   /live/:liveId/comment
+POST   /live/:liveId/like
+POST   /live/:liveId/gift
+Recommendation APIs
+Recommendations
+GET    /recommendations/videos
+GET    /recommendations/users
+GET    /recommendations/live
+Search APIs
+Search
+GET    /search/videos
+GET    /search/users
+GET    /search/hashtags
+GET    /search/sounds
+GET    /search/live
+Sound APIs
+Sounds
+GET    /sounds/:soundId
+GET    /sounds/:soundId/videos
+
+POST   /sounds/:soundId/favorite
+DELETE /sounds/:soundId/favorite
+
+GET    /sounds/trending
+Analytics APIs
+Analytics
+GET    /analytics/videos/:videoId
+GET    /analytics/users/:userId
+
+GET    /analytics/dashboard
+GET    /analytics/engagement
+GET    /analytics/audience
+Moderation APIs
+Moderation
+POST   /moderation/videos/:videoId/review
+POST   /moderation/comments/:commentId/review
+POST   /moderation/users/:userId/review
+
+POST   /moderation/videos/:videoId/remove
+POST   /moderation/comments/:commentId/remove
+
+POST   /moderation/users/:userId/ban
+POST   /moderation/users/:userId/unban
+Admin APIs
+Admin
+GET    /admin/users
+GET    /admin/videos
+GET    /admin/reports
+GET    /admin/metrics
+
+DELETE /admin/videos/:videoId
+DELETE /admin/comments/:commentId
+DELETE /admin/users/:userId
+WebSocket Events
+Socket Namespaces
+/ws/feed
+/ws/live
+/ws/chat
+/ws/notifications
+Events
+video:uploaded
+video:processed
+video:liked
+video:commented
+
+notification:new
+
+message:new
+message:read
+
+live:started
+live:ended
+live:viewer-joined
+MongoDB Collection Naming
+users
+videos
+comments
+likes
+follows
+bookmarks
+hashtags
+notifications
+messages
+conversations
+reports
+analytics
+video_views
+video_shares
+live_streams
+Indexing Strategy
+users:
+- username (unique)
+- email (unique)
+
+videos:
+- userId
+- createdAt
+- hashtags
+- views
+- score
+
+comments:
+- videoId
+- userId
+- createdAt
+
+likes:
+- userId + videoId (compound unique)
+
+follows:
+- followerId + followingId (compound unique)
+
+messages:
+- conversationId + createdAt
+Production Best Practices
+Use:
+- API Gateway
+- Redis cache
+- Kafka/RabbitMQ
+- CDN
+- Object storage (S3/R2/GCS)
+- Queue workers
+- Event-driven architecture
+- Rate limiting
+- JWT + refresh tokens
+- Cursor pagination
+- Soft delete
+- Read replicas
+- Sharding
+- Background video processing
+- Feature flags
+- OpenTelemetry
+- Structured logging
+- Distributed tracing
+Recommended Internal Service Naming
+AuthService
+UserService
+VideoService
+FeedService
+RecommendationService
+CommentService
+ModerationService
+NotificationService
+AnalyticsService
+UploadService
+SearchService
+LiveService
+MessageService
+Recommended Queue Names
+video-processing-queue
+notification-queue
+feed-fanout-queue
+analytics-queue
+email-queue
+moderation-queue
+transcoding-queue
+thumbnail-queue
+recommendation-queue
+          
+
+
+
+
+
+
+
+
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+src/
+├── app.js
+├── server.js
+├── configs/
+│   ├── env.config.js
+│   ├── db.config.js
+│   ├── redis.config.js
+│   ├── kafka.config.js
+│   ├── logger.config.js
+│   ├── s3.config.js
+│   └── socket.config.js
+│
+├── api/
+│   └── v1/
+│       ├── routes/
+│       │   ├── index.routes.js
+│       │   ├── auth.routes.js
+│       │   ├── user.routes.js
+│       │   ├── follow.routes.js
+│       │   ├── video.routes.js
+│       │   ├── upload.routes.js
+│       │   ├── comment.routes.js
+│       │   ├── like.routes.js
+│       │   ├── bookmark.routes.js
+│       │   ├── hashtag.routes.js
+│       │   ├── notification.routes.js
+│       │   ├── conversation.routes.js
+│       │   ├── message.routes.js
+│       │   ├── live.routes.js
+│       │   ├── recommendation.routes.js
+│       │   ├── search.routes.js
+│       │   ├── analytics.routes.js
+│       │   ├── moderation.routes.js
+│       │   └── admin.routes.js
+│       │
+│       ├── controllers/
+│       │   ├── auth.controller.js
+│       │   ├── user.controller.js
+│       │   ├── follow.controller.js
+│       │   ├── video.controller.js
+│       │   ├── upload.controller.js
+│       │   ├── comment.controller.js
+│       │   ├── like.controller.js
+│       │   ├── bookmark.controller.js
+│       │   ├── hashtag.controller.js
+│       │   ├── notification.controller.js
+│       │   ├── conversation.controller.js
+│       │   ├── message.controller.js
+│       │   ├── live.controller.js
+│       │   ├── recommendation.controller.js
+│       │   ├── search.controller.js
+│       │   ├── analytics.controller.js
+│       │   ├── moderation.controller.js
+│       │   └── admin.controller.js
+│       │
+│       ├── services/
+│       │   ├── auth.service.js
+│       │   ├── user.service.js
+│       │   ├── follow.service.js
+│       │   ├── video.service.js
+│       │   ├── upload.service.js
+│       │   ├── comment.service.js
+│       │   ├── like.service.js
+│       │   ├── bookmark.service.js
+│       │   ├── hashtag.service.js
+│       │   ├── notification.service.js
+│       │   ├── conversation.service.js
+│       │   ├── message.service.js
+│       │   ├── live.service.js
+│       │   ├── recommendation.service.js
+│       │   ├── search.service.js
+│       │   ├── analytics.service.js
+│       │   ├── moderation.service.js
+│       │   └── admin.service.js
+│       │
+│       ├── repositories/
+│       │   ├── auth.repository.js
+│       │   ├── user.repository.js
+│       │   ├── follow.repository.js
+│       │   ├── video.repository.js
+│       │   ├── upload.repository.js
+│       │   ├── comment.repository.js
+│       │   ├── like.repository.js
+│       │   ├── bookmark.repository.js
+│       │   ├── hashtag.repository.js
+│       │   ├── notification.repository.js
+│       │   ├── conversation.repository.js
+│       │   ├── message.repository.js
+│       │   ├── live.repository.js
+│       │   ├── analytics.repository.js
+│       │   ├── moderation.repository.js
+│       │   └── admin.repository.js
+│       │
+│       ├── validators/
+│       │   ├── auth.validator.js
+│       │   ├── user.validator.js
+│       │   ├── follow.validator.js
+│       │   ├── video.validator.js
+│       │   ├── upload.validator.js
+│       │   ├── comment.validator.js
+│       │   ├── like.validator.js
+│       │   ├── bookmark.validator.js
+│       │   ├── hashtag.validator.js
+│       │   ├── notification.validator.js
+│       │   ├── conversation.validator.js
+│       │   ├── message.validator.js
+│       │   ├── live.validator.js
+│       │   ├── analytics.validator.js
+│       │   ├── moderation.validator.js
+│       │   └── admin.validator.js
+│       │
+│       ├── dto/
+│       │   ├── auth.dto.js
+│       │   ├── user.dto.js
+│       │   ├── video.dto.js
+│       │   ├── comment.dto.js
+│       │   ├── message.dto.js
+│       │   ├── notification.dto.js
+│       │   └── analytics.dto.js
+│       │
+│       ├── middlewares/
+│       │   ├── auth.middleware.js
+│       │   ├── role.middleware.js
+│       │   ├── upload.middleware.js
+│       │   ├── validation.middleware.js
+│       │   ├── rate-limit.middleware.js
+│       │   ├── pagination.middleware.js
+│       │   ├── error.middleware.js
+│       │   ├── request-id.middleware.js
+│       │   ├── sanitize.middleware.js
+│       │   ├── cors.middleware.js
+│       │   └── logger.middleware.js
+│       │
+│       └── policies/
+│           ├── user.policy.js
+│           ├── video.policy.js
+│           ├── comment.policy.js
+│           └── admin.policy.js
+│
+├── db/
+│   ├── mongo/
+│   │   ├── connection.js
+│   │   ├── indexes/
+│   │   │   ├── user.index.js
+│   │   │   ├── video.index.js
+│   │   │   ├── comment.index.js
+│   │   │   └── follow.index.js
+│   │   │
+│   │   ├── models/
+│   │   │   ├── user.model.js
+│   │   │   ├── profile.model.js
+│   │   │   ├── session.model.js
+│   │   │   ├── follow.model.js
+│   │   │   ├── video.model.js
+│   │   │   ├── video-view.model.js
+│   │   │   ├── video-share.model.js
+│   │   │   ├── comment.model.js
+│   │   │   ├── like.model.js
+│   │   │   ├── bookmark.model.js
+│   │   │   ├── hashtag.model.js
+│   │   │   ├── notification.model.js
+│   │   │   ├── conversation.model.js
+│   │   │   ├── message.model.js
+│   │   │   ├── live-stream.model.js
+│   │   │   ├── report.model.js
+│   │   │   ├── analytics.model.js
+│   │   │   └── moderation.model.js
+│   │   │
+│   │   └── migrations/
+│   │
+│   └── redis/
+│       ├── redis.client.js
+│       ├── cache.keys.js
+│       └── cache.ttl.js
+│
+├── sockets/
+│   ├── index.js
+│   ├── feed.socket.js
+│   ├── live.socket.js
+│   ├── message.socket.js
+│   ├── notification.socket.js
+│   ├── events/
+│   │   ├── video.events.js
+│   │   ├── message.events.js
+│   │   ├── notification.events.js
+│   │   └── live.events.js
+│   │
+│   └── handlers/
+│       ├── connect.handler.js
+│       ├── disconnect.handler.js
+│       └── auth.handler.js
+│
+├── queues/
+│   ├── bullmq/
+│   │   ├── queues/
+│   │   │   ├── video-processing.queue.js
+│   │   │   ├── transcoding.queue.js
+│   │   │   ├── thumbnail.queue.js
+│   │   │   ├── notification.queue.js
+│   │   │   ├── analytics.queue.js
+│   │   │   ├── recommendation.queue.js
+│   │   │   └── moderation.queue.js
+│   │   │
+│   │   ├── workers/
+│   │   │   ├── video.worker.js
+│   │   │   ├── transcoding.worker.js
+│   │   │   ├── thumbnail.worker.js
+│   │   │   ├── notification.worker.js
+│   │   │   ├── analytics.worker.js
+│   │   │   ├── recommendation.worker.js
+│   │   │   └── moderation.worker.js
+│   │   │
+│   │   └── events/
+│   │       ├── queue.events.js
+│   │       └── worker.events.js
+│
+├── storage/
+│   ├── s3/
+│   │   ├── upload-file.js
+│   │   ├── delete-file.js
+│   │   ├── signed-url.js
+│   │   └── multipart-upload.js
+│   │
+│   └── local/
+│       └── temp/
+│
+├── transcoding/
+│   ├── ffmpeg.service.js
+│   ├── thumbnail.service.js
+│   ├── hls.service.js
+│   └── presets/
+│       ├── 1080p.js
+│       ├── 720p.js
+│       └── 480p.js
+│
+├── recommendation/
+│   ├── ranking.engine.js
+│   ├── scoring.engine.js
+│   ├── personalization.engine.js
+│   └── feed-generator.js
+│
+├── search/
+│   ├── elastic/
+│   │   ├── elastic.client.js
+│   │   ├── video.index.js
+│   │   ├── user.index.js
+│   │   └── hashtag.index.js
+│   │
+│   └── sync/
+│       ├── sync-videos.js
+│       ├── sync-users.js
+│       └── sync-hashtags.js
+│
+├── events/
+│   ├── kafka/
+│   │   ├── producers/
+│   │   │   ├── video.producer.js
+│   │   │   ├── notification.producer.js
+│   │   │   ├── analytics.producer.js
+│   │   │   └── moderation.producer.js
+│   │   │
+│   │   └── consumers/
+│   │       ├── video.consumer.js
+│   │       ├── analytics.consumer.js
+│   │       ├── notification.consumer.js
+│   │       └── moderation.consumer.js
+│
+├── shared/
+│   ├── constants/
+│   │   ├── roles.constant.js
+│   │   ├── video-status.constant.js
+│   │   ├── queue.constant.js
+│   │   ├── notification.constant.js
+│   │   └── error.constant.js
+│   │
+│   ├── enums/
+│   │   ├── user.enum.js
+│   │   ├── video.enum.js
+│   │   └── report.enum.js
+│   │
+│   ├── helpers/
+│   │   ├── jwt.helper.js
+│   │   ├── bcrypt.helper.js
+│   │   ├── cursor-pagination.helper.js
+│   │   ├── response.helper.js
+│   │   ├── async-handler.helper.js
+│   │   └── slug.helper.js
+│   │
+│   ├── utils/
+│   │   ├── logger.js
+│   │   ├── api-error.js
+│   │   ├── api-response.js
+│   │   ├── generate-id.js
+│   │   ├── time.js
+│   │   └── validation.js
+│   │
+│   └── templates/
+│       ├── email/
+│       │   ├── verify-email.hbs
+│       │   ├── forgot-password.hbs
+│       │   └── welcome.hbs
+│       │
+│       └── push/
+│           └── notification.template.js
+│
+├── docs/
+│   ├── swagger.json
+│   ├── postman/
+│   └── openapi/
+│
+├── tests/
+│   ├── unit/
+│   ├── integration/
+│   ├── e2e/
+│   └── fixtures/
+│
+├── scripts/
+│   ├── seed.js
+│   ├── create-admin.js
+│   ├── migrate.js
+│   └── cleanup.js
+│
+├── logs/
+│
+├── .env
+├── .env.production
+├── .gitignore
+├── package.json
+├── Dockerfile
+├── docker-compose.yml
+├── ecosystem.config.js
+└── README.md
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+users/
+├── controllers/
+│   ├── user-profile.controller.js
+│   ├── user-follow.controller.js
+│   ├── user-settings.controller.js
+│   ├── user-security.controller.js
+│   ├── user-bookmark.controller.js
+│   ├── user-playlist.controller.js
+│   ├── user-search.controller.js
+│   └── user-analytics.controller.js
+│
+├── services/
+│   ├── user-profile.service.js
+│   ├── user-follow.service.js
+│   ├── user-settings.service.js
+│   ├── user-security.service.js
+│   ├── user-bookmark.service.js
+│   ├── user-playlist.service.js
+│   ├── user-search.service.js
+│   └── user-analytics.service.js
+│
+├── repositories/
+│   ├── user.repository.js
+│   ├── follow.repository.js
+│   ├── bookmark.repository.js
+│   └── playlist.repository.js
+│
+├── routes/
+│   └── user.routes.js
+│
+├── validators/
+│   ├── user.validator.js
+│   ├── follow.validator.js
+│   └── playlist.validator.js
+│
+└── dto/
+    └── user.dto.js
+
+
+
+Controller Only:
+- req parsing
+- validation call
+- service call
+- response  
+
+Service:
+Business logic
+
+
+Repository:
+Mongo queries only

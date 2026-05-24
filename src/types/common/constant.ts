@@ -1,1 +1,1 @@
-export const visibility = ["everyone", "follower", "you"];
+export const visibility = ["everyone", "friends", "you"];

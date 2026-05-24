@@ -28,6 +28,11 @@ const videoSchema = new Schema(
       type: [String],
       default: [],
     },
+    status: {
+      type: String,
+      enum: ["draft", "pending", "published"],
+      default: "draft",
+    },
     stats: {
       views: {
         type: Number,
@@ -49,6 +54,9 @@ const videoSchema = new Schema(
     visibility: {
       type: String,
       enum: visibility,
+    },
+    cloudinary: {
+      publicId: String,
     },
   },
   { timestamps: true },

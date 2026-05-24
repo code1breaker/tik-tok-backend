@@ -67,12 +67,13 @@ export const updateFollowStatus = async ({
     {
       status,
     },
+    { new: true },
   );
 
   if (!existingFollow) {
     throw new BadRequest({
-      message: "User doesn't follow this account",
-      code: ERROR_CODE.NOT_FOLLOWING,
+      message: "No follow request with status 'pending' found for this user",
+      code: ERROR_CODE.NO_FOLLOW_REQUEST,
     });
   }
 };

@@ -143,7 +143,12 @@ export const login = async (
     apiResponse(res, {
       status: 200,
       message: "Login successfully",
-      data,
+      data: {
+        ...data,
+        accessToken,
+        refreshToken,
+        expiresIn: 15 * 60 * 1000,
+      },
     });
   } catch (error) {
     next(error);
@@ -242,6 +247,7 @@ export const refreshToken = async (
       data: {
         accessToken,
         refreshToken,
+        maxAge: 15 * 60 * 1000,
       },
     });
   } catch (error) {

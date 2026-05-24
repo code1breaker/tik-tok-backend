@@ -22,3 +22,30 @@ export const upload = async (
     next(error);
   }
 };
+
+export const updateUpload = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const body = req.body;
+    const userId = (req as any).user._id;
+    const { videoId } = req.params;
+    const { video } = await VideoService.updateUpload({
+      ...body,
+      userId,
+      videoId,
+    });
+
+    const data = video.toObject();
+
+    apiResponse(res, {
+      status: 200,
+      message: "Video uploaded successfully",
+      data,
+    });
+  } catch (error) {
+    next(error);
+  }
+};

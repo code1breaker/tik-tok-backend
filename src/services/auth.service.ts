@@ -46,6 +46,7 @@ export const signup = async ({
   const userExist = await User.findOne(query);
   if (userExist?.isEmailVerified || userExist?.isPhoneVerified)
     throw new BadRequest({
+      status: 409,
       message: "User already exist",
       code: ERROR_CODE.USER_EXIST,
     });
@@ -139,6 +140,7 @@ export const verifyEmail = async ({ token }: { token: string | undefined }) => {
 
   if (usernameExist?.isEmailVerified) {
     throw new BadRequest({
+      status: 409,
       message: "username already taken",
       code: ERROR_CODE.USERNAME_TAKEN,
     });
@@ -205,7 +207,6 @@ export const login = async ({ username, email, phone, password }: LoginIf) => {
     ...(phone && { phone }),
     ...(email && { email }),
   };
-
   const userExist = await User.findOne(query);
 
   if (!userExist) {
