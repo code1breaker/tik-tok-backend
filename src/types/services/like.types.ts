@@ -1,4 +1,4 @@
 export interface LikeIf {
-  videoId: string;
+  postId: string;
   userId: string;
 }

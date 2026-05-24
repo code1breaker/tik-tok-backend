@@ -1,7 +1,7 @@
 // models
 import ERROR_CODE from "../constants/error-code.ts";
 import Comment from "../models/comment.model.ts";
-import Video from "../models/video.model.ts";
+import Post from "../models/post.model.ts";
 
 // types
 import type {
@@ -11,44 +11,44 @@ import type {
 import { NotFound } from "../utils/api-error.ts";
 
 export const addComment = async ({
-  videoId,
+  postId,
   userId,
   message,
   parentId,
 }: AddCommentIf) => {
-  const video = await Video.findById(videoId);
-  if (!video)
+  const post = await Post.findById(postId);
+  if (!post)
     throw new NotFound({
-      message: "Video not found",
-      code: ERROR_CODE.VIDEO_NOT_FOUND,
+      message: "Post not found",
+      code: ERROR_CODE.POST_NOT_FOUND,
     });
 
   const comment = await Comment.create({
     userId,
-    videoId,
+    postId,
     message,
     parentId,
   });
 
-  await Video.findByIdAndUpdate(videoId, {
+  await Post.findByIdAndUpdate(postId, {
     $inc: { "stats.comments": 1 },
   });
 
   return { comment };
 };
 
-export const getComments = async ({ videoId, limit, page }: GetCommentIf) => {
-  const video = await Video.findById(videoId);
-  if (!video)
+export const getComments = async ({ postId, limit, page }: GetCommentIf) => {
+  const post = await Post.findById(postId);
+  if (!post)
     throw new NotFound({
-      message: "Video not found",
-      code: ERROR_CODE.VIDEO_NOT_FOUND,
+      message: "Post not found",
+      code: ERROR_CODE.POST_NOT_FOUND,
     });
 
   const skip = (page - 1) * limit;
 
   const comments = await Comment.find({
-    videoId,
+    postId,
     parentId: null,
   })
     .populate("user", "username fullname")

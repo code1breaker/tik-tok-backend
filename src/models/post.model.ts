@@ -1,7 +1,7 @@
 import { model, Schema } from "mongoose";
 import { visibility } from "../types/common/constant.ts";
 
-const videoSchema = new Schema(
+const postSchema = new Schema(
   {
     caption: {
       type: String,
@@ -62,5 +62,5 @@ const videoSchema = new Schema(
   { timestamps: true },
 );
 
-const Video = model("Video", videoSchema);
-export default Video;
+const Post = model("Post", postSchema);
+export default Post;

@@ -11,9 +11,9 @@ const commentSchema = new Schema(
       ref: "User",
       required: true,
     },
-    videoId: {
+    postId: {
       type: Schema.Types.ObjectId,
-      ref: "Video",
+      ref: "Post",
       required: true,
     },
     parentId: {

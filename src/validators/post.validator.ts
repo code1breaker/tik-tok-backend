@@ -1,7 +1,7 @@
-import { body, param, query } from "express-validator";
+import { body, param } from "express-validator";
 import { visibility } from "../types/common/constant.ts";
 
-export const uploadValidator = [
+export const createPostValidator = [
   body("url").trim().notEmpty().withMessage("required"),
   body("filename").trim().optional(),
   body("duration").optional().toFloat(),
@@ -14,8 +14,8 @@ export const uploadValidator = [
     .withMessage("invalid visibility"),
 ];
 
-export const updateUploadValidator = [
-  param("videoId").isMongoId().withMessage("invalid video id"),
+export const updatePostValidator = [
+  param("postId").isMongoId().withMessage("invalid post id"),
   body("url").trim().notEmpty().optional(),
   body("filename").trim().optional(),
   body("duration").optional().toFloat(),
@@ -27,14 +27,4 @@ export const updateUploadValidator = [
     .optional()
     .isIn(visibility)
     .withMessage("invalid visibility"),
-];
-
-export const likeValidator = [
-  param("videoId").isMongoId().withMessage("invalid video id"),
-];
-
-export const addCommentValidator = [
-  param("videoId").isMongoId().withMessage("invalid video id"),
-  body("message").trim().notEmpty().withMessage("required"),
-  body("parentId").optional().isMongoId().withMessage("required"),
 ];

@@ -11,19 +11,19 @@ export const addComment = async (
   next: NextFunction,
 ) => {
   try {
-    const { videoId } = req.params;
+    const { postId } = req.params;
     const userId = (req as any).user._id;
-    if (!videoId) {
+    if (!postId) {
       throw new BadRequest({
-        message: "Video id is missing",
-        code: ERROR_CODE.VIDEO_ID_MISSING,
+        message: "Post id is missing",
+        code: ERROR_CODE.POST_ID_MISSING,
       });
     }
 
     const { message, parentId } = req.body;
 
     const { comment } = await CommentService.addComment({
-      videoId,
+      postId,
       userId,
       message,
       parentId,
@@ -45,19 +45,19 @@ export const getComments = async (
   next: NextFunction,
 ) => {
   try {
-    const { videoId } = req.params;
+    const { postId } = req.params;
     const limit = Number(req.query.limit ?? 10);
     const page = Number(req.query.page ?? 1);
 
-    if (!videoId) {
+    if (!postId) {
       throw new BadRequest({
-        message: "Video id is missing",
-        code: ERROR_CODE.VIDEO_ID_MISSING,
+        message: "Post id is missing",
+        code: ERROR_CODE.POST_ID_MISSING,
       });
     }
 
     const { comments } = await CommentService.getComments({
-      videoId,
+      postId,
       limit,
       page,
     });

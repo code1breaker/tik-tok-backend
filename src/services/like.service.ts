@@ -1,38 +1,38 @@
 // models
 import ERROR_CODE from "../constants/error-code.ts";
 import Like from "../models/like.model.ts";
-import Video from "../models/video.model.ts";
+import Post from "../models/post.model.ts";
 
 // types
 import type { LikeIf } from "../types/services/like.types.ts";
 import { NotFound } from "../utils/api-error.ts";
 
-export const like = async ({ videoId, userId }: LikeIf) => {
-  const video = await Video.findById(videoId);
-  if (!video)
+export const like = async ({ postId, userId }: LikeIf) => {
+  const post = await Post.findById(postId);
+  if (!post)
     throw new NotFound({
-      message: "Video not found",
-      code: ERROR_CODE.VIDEO_NOT_FOUND,
+      message: "Post not found",
+      code: ERROR_CODE.POST_NOT_FOUND,
     });
 
-  const existingLike = await Like.findOne({ userId, videoId });
+  const existingLike = await Like.findOne({ userId, postId });
   if (existingLike) {
     await Like.deleteOne({ _id: existingLike._id });
-    await Video.findByIdAndUpdate(videoId, {
+    await Post.findByIdAndUpdate(postId, {
       $inc: { "stats.likes": -1 },
     });
 
-    return { video };
+    return { post };
   }
 
   await Like.create({
     userId,
-    videoId,
+    postId,
   });
 
-  await Video.findByIdAndUpdate(videoId, {
+  await Post.findByIdAndUpdate(postId, {
     $inc: { "stats.likes": 1 },
   });
 
-  return { video };
+  return { post };
 };

@@ -7,22 +7,22 @@ import ERROR_CODE from "../constants/error-code.ts";
 
 export const like = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { videoId } = req.params;
+    const { postId } = req.params;
     const userId = (req as any).user._id;
 
-    if (!videoId) {
+    if (!postId) {
       throw new BadRequest({
-        message: "Video id is missing",
-        code: ERROR_CODE.VIDEO_ID_MISSING,
+        message: "Post id is missing",
+        code: ERROR_CODE.POST_ID_MISSING,
       });
     }
 
-    const { video } = await LikeService.like({ videoId, userId });
+    const { post } = await LikeService.like({ postId, userId });
 
     apiResponse(res, {
       status: 200,
-      message: "Video liked successfully",
-      data: video,
+      message: "Post liked successfully",
+      data: post,
     });
   } catch (error) {
     next(error);
