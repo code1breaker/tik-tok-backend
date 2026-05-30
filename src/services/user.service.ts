@@ -8,18 +8,23 @@ import { NotFound } from "../utils/api-error.ts";
 import ERROR_CODE from "../constants/error-code.ts";
 import Follow from "../models/follow.model.ts";
 
-export const getProfileById = async ({ userId }: { userId: any }) => {
-  const [user, follower, following] = await Promise.all([
-    User.findById(userId).lean(),
-    Follow.countDocuments({ followingId: userId, status: "accepted" }),
-    Follow.countDocuments({ followerId: userId, status: "accepted" }),
-  ]);
+export const getProfileByUsername = async ({
+  username,
+}: {
+  username: string;
+}) => {
+  const user = await User.findOne({ username }).lean();
 
   if (!user)
     throw new NotFound({
       message: "user not found",
       code: ERROR_CODE.USER_NOT_FOUND,
     });
+
+  const [follower, following] = await Promise.all([
+    Follow.countDocuments({ followingId: user._id, status: "accepted" }),
+    Follow.countDocuments({ followerId: user._id, status: "accepted" }),
+  ]);
 
   return { ...user, follower, following };
 };

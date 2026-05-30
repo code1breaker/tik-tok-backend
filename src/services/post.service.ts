@@ -1,6 +1,7 @@
 // models
 import ERROR_CODE from "../constants/error-code.ts";
 import Post from "../models/post.model.ts";
+import User from "../models/user.model.ts";
 
 // types
 import type {
@@ -71,13 +72,24 @@ export const updatePost = async ({
   return { post };
 };
 
-export const userPost = async ({ userId, sort, limit, page }: UserPostIf) => {
+export const userPost = async ({ username, sort, limit, page }: UserPostIf) => {
   const skip = (page - 1) * limit;
   const sortOption: Record<string, any> = {
     latest: { createdAt: -1 },
     oldest: { createdAt: 1 },
     popular: { "stats.views": -1 },
   };
+
+  const user = await User.findOne({ username }).select("_id");
+
+  if (!user) {
+    throw new NotFound({
+      message: "User not found",
+      code: ERROR_CODE.USER_NOT_FOUND,
+    });
+  }
+
+  const userId = user._id;
 
   const count = await Post.countDocuments({ user: userId });
   const feed = await Post.find({ user: userId })

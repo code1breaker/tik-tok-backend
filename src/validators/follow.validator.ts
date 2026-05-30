@@ -20,13 +20,13 @@ export const followStatusValidator = [
 ];
 
 export const getFollowerValidator = [
-  param("userId").notEmpty().withMessage("required").isMongoId(),
+  param("username").notEmpty().withMessage("required"),
   query("limit").toInt(),
   query("page").toInt(),
 ];
 
 export const getFollowingValidator = [
-  param("userId").notEmpty().withMessage("required").isMongoId(),
+  param("username").notEmpty().withMessage("required"),
   query("limit").toInt(),
   query("page").toInt(),
 ];

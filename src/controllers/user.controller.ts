@@ -6,15 +6,15 @@ import * as UserService from "../services/user.service.ts";
 // utils
 import apiResponse from "../utils/api-response.ts";
 
-export const getProfileById = async (
+export const getProfileByUsername = async (
   req: Request,
   res: Response,
   next: NextFunction,
 ) => {
   try {
-    const { userId } = req.params;
+    const { username = "" } = req.params;
 
-    const user = await UserService.getProfileById({ userId });
+    const user = await UserService.getProfileByUsername({ username });
 
     await apiResponse(res, {
       status: 200,

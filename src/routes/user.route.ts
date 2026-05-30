@@ -1,26 +1,24 @@
 import { Router } from "express";
 
 // controller
-import { getProfileById } from "../controllers/user.controller.ts";
-import { userPost } from "../controllers/post.controller.ts";
 import {
   followUser,
   getFollower,
   getFollowing,
-  incomingFollowRequest,
-  outgoingFollowRequest,
-  unFollowUser,
+  unFollowUser
 } from "../controllers/follow.controller.ts";
+import { userPost } from "../controllers/post.controller.ts";
+import { getProfileByUsername } from "../controllers/user.controller.ts";
 
 // validator
-import { getProfileByIdValidator } from "../validators/user.validator.ts";
 import { userFeedValidator } from "../validators/feed.validator.ts";
 import {
   followUserValidator,
-  unFollowUserValidator,
   getFollowerValidator,
   getFollowingValidator,
+  unFollowUserValidator,
 } from "../validators/follow.validator.ts";
+import { getProfileByUsernameValidator } from "../validators/user.validator.ts";
 
 // middleware
 import { isAuth } from "../middlewares/auth.middleware.ts";
@@ -29,18 +27,18 @@ import validate from "../middlewares/validate.middleware.ts";
 const router = Router();
 
 router.get(
-  "/:userId",
+  "/:username",
   isAuth,
-  getProfileByIdValidator,
+  getProfileByUsernameValidator,
   validate,
-  getProfileById,
+  getProfileByUsername,
 );
 
 // posts
-router.get("/:userId/posts", isAuth, userFeedValidator, validate, userPost);
+router.get("/:username/posts", isAuth, userFeedValidator, validate, userPost);
 
 // follow
-router.post(
+router.patch(
   "/:userId/follow",
   isAuth,
   followUserValidator,
@@ -55,14 +53,14 @@ router.delete(
   unFollowUser,
 );
 router.get(
-  "/:userId/followers",
+  "/:username/followers",
   isAuth,
   getFollowerValidator,
   validate,
   getFollower,
 );
 router.get(
-  "/:userId/following",
+  "/:username/following",
   isAuth,
   getFollowingValidator,
   validate,

@@ -28,9 +28,10 @@ export const followUser = async (
         code: ERROR_CODE.CANNOT_FOLLOW_SELF,
       });
     }
-    await FollowService.followUser({ followingId, followerId });
+    const user = await FollowService.followUser({ followingId, followerId });
 
     apiResponse(res, {
+      data: user,
       status: 200,
       message: "User follow successfully",
     });
@@ -175,12 +176,14 @@ export const getFollower = async (
   next: NextFunction,
 ) => {
   try {
-    const { userId } = req.params;
+    const { username } = req.params;
     const limit = Number(req.query.limit ?? 10);
     const page = Number(req.query.page ?? 1);
+    const loggedInUserId = (req as any).user._id;
 
     const { user, count } = await FollowService.getFollower({
-      userId,
+      loggedInUserId,
+      username,
       limit,
       page,
     });
@@ -206,12 +209,14 @@ export const getFollowing = async (
   next: NextFunction,
 ) => {
   try {
-    const { userId } = req.params;
+    const { username } = req.params;
     const limit = Number(req.query.limit ?? 10);
     const page = Number(req.query.page ?? 1);
+    const loggedInUserId = (req as any).user._id;
 
     const { user, count } = await FollowService.getFollowing({
-      userId,
+      loggedInUserId,
+      username,
       limit,
       page,
     });

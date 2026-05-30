@@ -17,7 +17,7 @@ export interface UpdatePostIf extends PostIf {
 export type SortTypeIf = "latest" | "oldest" | "popular";
 
 export interface UserPostIf {
-  userId: string;
+  username: string;
   limit: number;
   page: number;
   sort: SortTypeIf;

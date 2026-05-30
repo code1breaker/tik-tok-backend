@@ -60,15 +60,15 @@ export const userPost = async (
   try {
     const page = Number(req.query.page ?? 1);
     const limit = Number(req.query.limit ?? 10);
-    const { userId } = req.params;
+    const { username } = req.params;
     const sort = (req.query.sort as SortTypeIf) || "latest";
 
-    if (!userId) {
+    if (!username) {
       throw new BadRequest({ message: "", code: "" });
     }
 
     const { feed, count } = await PostService.userPost({
-      userId,
+      username,
       sort,
       limit,
       page,

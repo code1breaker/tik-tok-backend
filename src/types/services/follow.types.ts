@@ -22,13 +22,15 @@ export interface OutgoingFollowRequestIf {
 }
 
 export interface GetFollowerIf {
-  userId: string | undefined;
+  loggedInUserId: string;
+  username: string | undefined;
   limit: number;
   page: number;
 }
 
 export interface GetFollowingIf {
-  userId: string | undefined;
+  loggedInUserId: string;
+  username: string | undefined;
   limit: number;
   page: number;
 }
