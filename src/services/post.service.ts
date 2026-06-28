@@ -5,8 +5,10 @@ import User from "../models/user.model.ts";
 
 // types
 import type {
-  UpdatePostIf,
   PostIf,
+  UpdatePostIf,
+  UserPostByIdContextIf,
+  UserPostByIdDirectionIf,
   UserPostIf,
 } from "../types/services/post.types.ts";
 import { NotFound } from "../utils/api-error.ts";
@@ -99,4 +101,69 @@ export const userPost = async ({ username, sort, limit, page }: UserPostIf) => {
     .limit(limit);
 
   return { feed, count };
+};
+
+export const userPostById = async ({
+  username,
+  postId,
+}: UserPostByIdContextIf) => {
+  const currentPost = await Post.findById(postId);
+
+  if (!currentPost)
+    throw new NotFound({
+      message: "Post not found",
+      code: ERROR_CODE.POST_NOT_FOUND,
+    });
+
+  const targetUser = await User.findOne({ username });
+  if (!targetUser)
+    throw new NotFound({
+      message: "User not found",
+      code: ERROR_CODE.USER_NOT_FOUND,
+    });
+
+  return { feed: currentPost };
+};
+
+export const userPostByIdDirection = async ({
+  direction,
+  username,
+  postId,
+  limit,
+}: UserPostByIdDirectionIf) => {
+  const currentPost = await Post.findById(postId);
+
+  if (!currentPost)
+    throw new NotFound({
+      message: "Post not found",
+      code: ERROR_CODE.POST_NOT_FOUND,
+    });
+
+  const targetUser = await User.findOne({ username });
+  if (!targetUser)
+    throw new NotFound({
+      message: "User not found",
+      code: ERROR_CODE.USER_NOT_FOUND,
+    });
+
+  // Sort from latest to oldest
+  const filter: Record<string, any> = {
+    user: targetUser?._id,
+  };
+  const sort: Record<string, any> = {};
+
+  if (direction === "next") {
+    filter.createdAt = { $lt: currentPost.createdAt };
+    sort.createdAt = -1;
+  }
+
+  if (direction === "prev") {
+    filter.createdAt = { $gt: currentPost.createdAt };
+    sort.createdAt = 1;
+  }
+
+  const posts = await Post.find(filter).sort(sort).limit(limit);
+  const feed = direction === "prev" ? posts?.reverse() : posts;
+
+  return { feed };
 };

@@ -22,3 +22,14 @@ export interface UserPostIf {
   page: number;
   sort: SortTypeIf;
 }
+export interface UserPostByIdContextIf {
+  username: string;
+  postId: string;
+  limit: number;
+}
+export interface UserPostByIdDirectionIf {
+  username: string;
+  direction: string;
+  postId: string;
+  limit: number;
+}

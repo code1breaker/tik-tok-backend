@@ -3,6 +3,7 @@ export interface AddCommentIf {
   userId: string;
   message: string;
   parentId?: string;
+  replyParentId?: string;
 }
 
 export interface GetCommentIf {

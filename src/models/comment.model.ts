@@ -6,7 +6,7 @@ const commentSchema = new Schema(
       type: String,
       required: true,
     },
-    user: {
+    userId: {
       type: Schema.Types.ObjectId,
       ref: "User",
       required: true,
@@ -19,6 +19,14 @@ const commentSchema = new Schema(
     parentId: {
       type: Schema.Types.ObjectId,
       ref: "Comment",
+    },
+    replyParentId: {
+      type: Schema.Types.ObjectId,
+      ref: "Comment",
+    },
+    replyCount: {
+      type: Number,
+      default: 0,
     },
   },
   {

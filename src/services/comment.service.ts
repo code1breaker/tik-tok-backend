@@ -15,8 +15,10 @@ export const addComment = async ({
   userId,
   message,
   parentId,
+  replyParentId,
 }: AddCommentIf) => {
   const post = await Post.findById(postId);
+
   if (!post)
     throw new NotFound({
       message: "Post not found",
@@ -28,10 +30,15 @@ export const addComment = async ({
     postId,
     message,
     parentId,
+    replyParentId,
   });
 
   await Post.findByIdAndUpdate(postId, {
     $inc: { "stats.comments": 1 },
+  });
+
+  await Comment.findByIdAndUpdate(parentId, {
+    $inc: { replyCount: 1 },
   });
 
   return { comment };
@@ -51,35 +58,36 @@ export const getComments = async ({ postId, limit, page }: GetCommentIf) => {
     postId,
     parentId: null,
   })
-    .populate("user", "username fullname")
+    .populate("userId", "username fullname photoUrl")
     .sort({ createdAt: -1 })
     .skip(skip)
     .limit(limit)
     .lean();
 
-  const parentIds = comments.map((comment) => comment._id);
+  return { comments };
+};
 
-  const replies = await Comment.find({
-    parentId: { $in: parentIds },
-  })
-    .populate("user", "username fullname")
+export const getReplies = async ({
+  commentId,
+  limit,
+  page,
+}: {
+  commentId: string;
+  limit: number;
+  page: number;
+}) => {
+  const skip = (page - 1) * limit;
+  const comments = await Comment.find({ parentId: commentId })
+    .populate("userId", "username fullname photoUrl")
+    .limit(limit)
+    .skip(skip)
     .lean();
 
-  const allComments = comments.map((comment) => {
-    const id = comment?._id?.toString();
-    const obj: any = {};
-    obj[id] = { ...comment, replies: [] };
-
-    replies?.forEach((reply) => {
-      const parentId = reply.parentId!.toString();
-      if (obj[parentId]) {
-        obj[parentId].replies.push(reply);
-      }
+  if (!comments)
+    throw new NotFound({
+      message: "Comment not found",
+      code: ERROR_CODE.COMMENT_NOT_FOUND,
     });
 
-    const value = obj[id];
-    return value;
-  });
-
-  return { comments: allComments };
+  return { comments };
 };

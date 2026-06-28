@@ -40,12 +40,17 @@ const POST_CODE = {
   POST_ID_MISSING: "POST_ID_MISSING",
 };
 
+const COMMENT_CODE = {
+  COMMENT_NOT_FOUND: "COMMENT_NOT_FOUND",
+};
+
 const ERROR_CODE = {
   ...GENERAL_CODE,
   ...AUTH_CODE,
   ...OTP_CODE,
   ...FOLLOW_CODE,
   ...POST_CODE,
+  ...COMMENT_CODE,
 };
 
 export default ERROR_CODE;

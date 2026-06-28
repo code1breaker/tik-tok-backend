@@ -88,3 +88,62 @@ export const userPost = async (
     next(error);
   }
 };
+
+export const userPostById = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const limit = Number(req.query.limit ?? 10);
+    const { username, postId = "" } = req.params;
+
+    if (!username) {
+      throw new BadRequest({ message: "", code: "" });
+    }
+
+    const { feed } = await PostService.userPostById({
+      username,
+      postId,
+      limit,
+    });
+
+    apiResponse(res, {
+      status: 200,
+      message: "user posts fetch successfully",
+      data: feed,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const userPostByIdDirection = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const limit = Number(req.query.limit ?? 10);
+    const { username, postId = "", direction = "" } = req.params;
+
+    if (!username) {
+      throw new BadRequest({ message: "", code: "" });
+    }
+
+    const { feed } = await PostService.userPostByIdDirection({
+      direction,
+      username,
+      postId,
+      limit,
+    });
+
+    apiResponse(res, {
+      status: 200,
+      message: "user posts fetch successfully",
+      data: feed,
+    });
+  } catch (error) {
+    next(error);
+  }
+};

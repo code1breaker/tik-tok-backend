@@ -11,3 +11,15 @@ export const userFeedValidator = [
   query("limit"),
   query("page"),
 ];
+
+export const userFeedByIdValidator = [
+  param("username").notEmpty().withMessage("required"),
+  param("postId").notEmpty().withMessage("required"),
+];
+
+export const userFeedByIdDirectionValidator = [
+  param("username").notEmpty().withMessage("required"),
+  param("postId").notEmpty().withMessage("required"),
+  param("direction").notEmpty().withMessage("required"),
+  query("limit"),
+];

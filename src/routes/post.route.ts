@@ -2,7 +2,11 @@ import { Router } from "express";
 
 // controller
 import { createPost, updatePost } from "../controllers/post.controller.ts";
-import { addComment, getComments } from "../controllers/comment.controller.ts";
+import {
+  addComment,
+  getComments,
+  getReplies,
+} from "../controllers/comment.controller.ts";
 import { like } from "../controllers/like.controller.ts";
 
 // validator
@@ -11,7 +15,11 @@ import {
   updatePostValidator,
 } from "../validators/post.validator.ts";
 import { likeValidator } from "../validators/like.validator.ts";
-import { addCommentValidator } from "../validators/comment.validator.ts";
+import {
+  addCommentValidator,
+  getCommentValidator,
+  getRepliesValidator,
+} from "../validators/comment.validator.ts";
 
 // middleware
 import { isAuth } from "../middlewares/auth.middleware.ts";
@@ -23,7 +31,20 @@ router.post("/", isAuth, createPostValidator, validate, createPost);
 router.patch("/:postId", isAuth, updatePostValidator, validate, updatePost);
 
 // comment
-router.get("/:postId/comments", isAuth, getComments);
+router.get(
+  "/:postId/comments",
+  isAuth,
+  getCommentValidator,
+  validate,
+  getComments,
+);
+router.get(
+  "/comments/:commentId/replies",
+  isAuth,
+  getRepliesValidator,
+  validate,
+  getReplies,
+);
 router.post(
   "/:postId/comments",
   isAuth,

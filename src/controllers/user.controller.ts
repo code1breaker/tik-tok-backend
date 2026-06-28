@@ -13,8 +13,9 @@ export const getProfileByUsername = async (
 ) => {
   try {
     const { username = "" } = req.params;
+    const userId = (req as any).user._id;
 
-    const user = await UserService.getProfileByUsername({ username });
+    const user = await UserService.getProfileByUsername({ username, userId });
 
     await apiResponse(res, {
       status: 200,

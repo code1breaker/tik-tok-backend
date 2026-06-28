@@ -5,13 +5,21 @@ import {
   followUser,
   getFollower,
   getFollowing,
-  unFollowUser
+  unFollowUser,
 } from "../controllers/follow.controller.ts";
-import { userPost } from "../controllers/post.controller.ts";
+import {
+  userPost,
+  userPostById,
+  userPostByIdDirection,
+} from "../controllers/post.controller.ts";
 import { getProfileByUsername } from "../controllers/user.controller.ts";
 
 // validator
-import { userFeedValidator } from "../validators/feed.validator.ts";
+import {
+  userFeedByIdDirectionValidator,
+  userFeedByIdValidator,
+  userFeedValidator,
+} from "../validators/feed.validator.ts";
 import {
   followUserValidator,
   getFollowerValidator,
@@ -36,6 +44,20 @@ router.get(
 
 // posts
 router.get("/:username/posts", isAuth, userFeedValidator, validate, userPost);
+router.get(
+  "/:username/posts/:postId",
+  isAuth,
+  userFeedByIdValidator,
+  validate,
+  userPostById,
+);
+router.get(
+  "/:username/posts/:postId/:direction",
+  isAuth,
+  userFeedByIdDirectionValidator,
+  validate,
+  userPostByIdDirection,
+);
 
 // follow
 router.patch(
